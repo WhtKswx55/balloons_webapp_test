@@ -23,7 +23,7 @@
         tg.ready();
 
         document.getElementById("pay-btn").addEventListener("click", async () => {
-            const url = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev';
+            const url = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 
             const data = {
                 user_id: tg.initDataUnsafe.user?.id,
