@@ -1,35 +1,30 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html>
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Тест Заказа</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body { font-family: sans-serif; background-color: var(--tg-theme-bg-color); color: var(--tg-theme-text-color); padding: 20px; }
+        button { width: 100%; padding: 10px; background: #31b545; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
 </head>
 <body>
-
-    <h2>Тестовый каталог</h2>
-    <div style="border: 1px solid #000; padding: 10px; margin-bottom: 10px;">
-        <p>Набор шаров "Праздник"</p>
-        <p>Цена: 1200 руб.</p>
-        <button id="buy-btn">Купить (Тест)</button>
+    <h2>Корзина шаров </h2>
+    <div id="cart">
+        <p>Набор "Звездное небо" - 1500 руб.</p>
     </div>
+    <button id="pay-btn">Оплатить корзину</button>
 
     <script>
         let tg = window.Telegram.WebApp;
         tg.expand();
 
-        let buyBtn = document.getElementById("buy-btn");
-
-        buyBtn.addEventListener("click", function(){
+        document.getElementById("pay-btn").addEventListener("click", () => {
             let data = {
-                items: [{name: "Набор шаров Праздник", price: 1200}],
-                total: 1200
+                details: "Набор 'Звездное небо' (из WebApp)",
+                price: 1500
             };
-
             tg.sendData(JSON.stringify(data));
-
-            tg.close();
         });
     </script>
 </body>
