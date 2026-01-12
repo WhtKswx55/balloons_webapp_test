@@ -11,20 +11,30 @@
 <body>
     <h2>Корзина шаров </h2>
     <div id="cart">
-        <p>Набор "Звездное небо" - 1500 руб.</p>
+        <p>Набор "динозавр" - 1500 руб.</p>
     </div>
     <button id="pay-btn">Оплатить корзину</button>
 
     <script>
         let tg = window.Telegram.WebApp;
+        
+        tg.ready();
         tg.expand();
-
-        document.getElementById("pay-btn").addEventListener("click", () => {
+        
+        let payBtn = document.getElementById("pay-btn");
+        
+        payBtn.addEventListener("click", () => {
             let data = {
-                details: "Набор 'Звездное небо' (из WebApp)",
+                details: "набор 'динозавр' (из WebApp)",
                 price: 1500
             };
-            tg.sendData(JSON.stringify(data));
+            
+            try {
+                tg.sendData(JSON.stringify(data));
+                tg.close(); 
+            } catch (error) {
+                alert("ошибка отправки данных: " + error.message);
+            }
         });
     </script>
 </body>
