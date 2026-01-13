@@ -9,7 +9,6 @@ function addToCart(name, price) {
     cart.push({ name, price });
     updateMainButton();
 
-    // Вибрация телефона при добавлении
     if (tg.HapticFeedback) {
         tg.HapticFeedback.impactOccurred('light');
     }
@@ -26,7 +25,6 @@ function updateMainButton() {
 }
 
 tg.MainButton.onClick(() => {
-    // Если мы в магазине - идем в корзину
     if (document.getElementById('shop-screen').style.display !== 'none') {
         showOrderScreen();
     }
@@ -101,4 +99,5 @@ async function submitOrder() {
         tg.MainButton.hideProgress();
         tg.showAlert("Ошибка соединения: " + error.message);
     }
+
 }
