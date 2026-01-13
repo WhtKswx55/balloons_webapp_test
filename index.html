@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Balloons Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="shop-screen">
+        <header>
+            <h1>Магазин шаров 🎈</h1>
+        </header>
+
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="emoji">🔴</div>
+                <h3>Красный шар</h3>
+                <p>100 руб.</p>
+                <div class="quantity-controls">
+                    <button onclick="changeQty(-1, 'Красный шар', 100)">-</button>
+                    <span class="quantity" id="qty-Красный шар">0</span>
+                    <button onclick="changeQty(1, 'Красный шар', 100)">+</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="emoji">🔵</div>
+                <h3>Синий шар</h3>
+                <p>100 руб.</p>
+                <div class="quantity-controls">
+                    <button onclick="changeQty(-1, 'Синий шар', 100)">-</button>
+                    <span class="quantity" id="qty-Синий шар">0</span>
+                    <button onclick="changeQty(1, 'Синий шар', 100)">+</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="emoji">🦄</div>
+                <h3>Единорог</h3>
+                <p>500 руб.</p>
+                <div class="quantity-controls">
+                    <button onclick="changeQty(-1, 'Единорог', 500)">-</button>
+                    <span class="quantity" id="qty-Единорог">0</span>
+                    <button onclick="changeQty(1, 'Единорог', 500)">+</button>
+                </div>
+            </div>
+
+            <div class="product-card">
+                <div class="emoji">🌟</div>
+                <h3>Звезда</h3>
+                <p>300 руб.</p>
+                <div class="quantity-controls">
+                    <button onclick="changeQty(-1, 'Звезда', 300)">-</button>
+                    <span class="quantity" id="qty-Звезда">0</span>
+                    <button onclick="changeQty(1, 'Звезда', 300)">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="order-screen" class="hidden">
+        <h2>Корзина 🛒</h2>
+        <div id="cart-items"></div>
+        <div class="total-price">Итого: <span id="total-amount">0</span> руб.</div>
+
+        <div class="form-container">
+            <h3>Ваши данные</h3>
+            <input type="text" id="user-name" placeholder="Имя" required>
+            <input type="text" id="user-surname" placeholder="Фамилия" required>
+            <label>Дата события:</label>
+            <input type="date" id="order-date" required>
+        </div>
+
+        <button class="secondary-btn" onclick="toggleScreen()">🔙 Назад к товарам</button>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
