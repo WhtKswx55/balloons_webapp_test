@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Balloons Shop</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="shop-screen">
+        <header>
+            <h1>За шариком 🎈</h1>
+            <p>Выберите лучшие шарики!</p>
+        </header>
+
+        <div class="products-grid">
+            <div class="product-card">
+                <div class="emoji">🔴</div>
+                <h3>красный шар</h3>
+                <p>50 рублев</p>
+                <button onclick="addToCart('Красный шар', 100)">Добавить</button>
+            </div>
+            <div class="product-card">
+                <div class="emoji">🔵</div>
+                <h3>синий шар</h3>
+                <p>50 рублев</p>
+                <button onclick="addToCart('Синий шар', 100)">Добавить</button>
+            </div>
+            <div class="product-card">
+                <div class="emoji">🦖</div>
+                <h3>динозавр</h3>
+                <p>500 рублев</p>
+                <button onclick="addToCart('Шар Единорог', 500)">Добавить</button>
+            </div>
+             <div class="product-card">
+                <div class="emoji">🌟</div>
+                <h3>звезда</h3>
+                <p>300 рублев</p>
+                <button onclick="addToCart('Шар Звезда', 300)">Добавить</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="order-screen" class="hidden">
+        <h2>Ваша корзина 🛒</h2>
+        <div id="cart-items">
+            </div>
+        <div class="total-price">Итого: <span id="total-amount">0</span> руб.</div>
+
+        <h3>Оформление заказа</h3>
+        <form id="order-form">
+            <input type="text" id="user-name" placeholder="Имя (обязательно)" required>
+            <input type="text" id="user-surname" placeholder="Фамилия (обязательно)" required>
+            <label for="order-date">Дата праздника:</label>
+            <input type="date" id="order-date" required>
+        </form>
+
+        <button id="back-btn" onclick="toggleScreen()">🔙 Назад в магазин</button>
+    </div>
+
+    <div id="main-button-container">
+        </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
