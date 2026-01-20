@@ -1,8 +1,13 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-tg.setHeadColor('#ffffff');
-tg.setBackgroundColor('#ffffff')
+
+try {
+    tg.setHeadColor('#ffffff');
+    tg.setBackgroundColor('#ffffff')
+} catch (e) {  console. log ("error of colours")}
+
+
 
 const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 
