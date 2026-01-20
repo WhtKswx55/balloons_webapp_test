@@ -139,26 +139,33 @@ async function submitOrder() {
             products: Object.values(cart).map(item => ({
                 name: item.name,
                 price: item.price,
-                qty: item.qty, 
-                total_item_price: item.price * item.qty
+                quantity: item.qty,
+                qty: item.qty,
+                sum: item.price * item.qty
             })),
             total_price: Object.values(cart).reduce((s, p) => s + (p.price * p.qty), 0)
         }
     };
 
     try {
-        await fetch(SERVER_URL, {
+        const response = await fetch(SERVER_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        tg.close();
+        
+        if (response.ok) {
+            tg.close();
+        } else {
+            throw new Error('Server error');
+        }
     } catch (e) {
         tg.MainButton.hideProgress();
-        tg.showAlert("Ошибка при отправке заказа!");
+        tg.showAlert("Ошибка при отправке!");
     }
 }
 
 initCategories();
+
 
 
