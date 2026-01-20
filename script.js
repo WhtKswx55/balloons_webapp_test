@@ -131,12 +131,18 @@ async function submitOrder() {
     if (!name || !surname || !date) return tg.showAlert("Заполните форму!");
 
     tg.MainButton.showProgress();
+
     const data = {
         user_id: tg.initDataUnsafe.user?.id,
         order_details: {
             customer: { name, surname, date },
-            products: Object.values(cart),
-            total_price: Object.values(cart).reduce((s, p) => s + p.price * p.qty, 0)
+            products: Object.values(cart).map(item => ({
+                name: item.name,
+                price: item.price,
+                qty: item.qty, 
+                total_item_price: item.price * item.qty
+            })),
+            total_price: Object.values(cart).reduce((s, p) => s + (p.price * p.qty), 0)
         }
     };
 
@@ -148,9 +154,11 @@ async function submitOrder() {
         });
         tg.close();
     } catch (e) {
-        tg.showAlert("Ошибка!");
+        tg.MainButton.hideProgress();
+        tg.showAlert("Ошибка при отправке заказа!");
     }
 }
 
 initCategories();
+
 
