@@ -14,7 +14,7 @@ const categories = [
     { id: 'march23', name: '23 февраля', img: '' },
     { id: 'school', name: 'Школьные шарики', img: '' },
     { id: 'gender', name: 'Гендерные шарики', img: '' },
-    { id: 'bday', name: 'День рождения', img: 'img/bday1.jpg
+    { id: 'bday', name: 'День рождения', img: 'img/bday1.jpg' },
     { id: 'baby', name: 'На выписку', img: '' },
     { id: 'decor', name: 'Оформление', img: '' }
 ];
