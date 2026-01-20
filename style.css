@@ -1,9 +1,10 @@
 :root {
-    --bg: var(--tg-theme-bg-color, #ffffff);
-    --text: var(--tg-theme-text-color, #000000);
-    --sec-bg: var(--tg-theme-secondary-bg-color, #f0f0f0);
-    --btn: var(--tg-theme-button-color, #248bed);
-    --btn-text: var(--tg-theme-button-text-color, #ffffff);
+    --bg-color: #ffffff;
+    --text: #000000;
+    --sec-bg: #f0f0f0;
+    --btn-color: #248bed;
+    --btn-text: #ffffff;
+    --danger-color: #dc3545
 }
 
 body {
@@ -80,4 +81,5 @@ body {
     border: none;
     border-radius: 10px;
     margin-top: 10px;
+
 }
