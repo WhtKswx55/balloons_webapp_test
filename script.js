@@ -9,14 +9,13 @@ try {
 const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 
 const categories = [
-    { id: 'feb14', name: '14 февраля', img: '' },
-    { id: 'march8', name: '8 марта', img: '' },
-    { id: 'march23', name: '23 февраля', img: '' },
-    { id: 'school', name: 'Школьные шарики', img: '' },
-    { id: 'gender', name: 'Гендерные шарики', img: '' },
+    { id: 'feb14', name: '14 февраля', img: 'img/14feb.jpg' },
+    { id: 'march8and23feb', name: '8 марта и 23 февраля', img: 'img/8march.jpg' },
+    { id: 'school', name: 'Школьные шарики', img: 'img/school.jpg' },
+    { id: 'gender', name: 'Гендерные шарики', img: 'img/gender.jpg' },
     { id: 'bday', name: 'День рождения', img: 'img/bday1.jpg' },
-    { id: 'baby', name: 'На выписку', img: '' },
-    { id: 'decor', name: 'Оформление', img: '' }
+    { id: 'baby', name: 'На выписку', img: 'img/vipiska.jpg' },
+    { id: 'other', name: 'Другое', img: 'img/other.jpg' }
 ];
 
 const products = {
@@ -154,3 +153,4 @@ async function submitOrder() {
 }
 
 initCategories();
+
