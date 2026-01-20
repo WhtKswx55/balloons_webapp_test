@@ -1,6 +1,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+tg.setHeadColor('#ffffff');
+tg.setBackgroundColor('#ffffff')
+
 const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 
 let cart = {};
