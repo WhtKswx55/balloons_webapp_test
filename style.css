@@ -6,6 +6,22 @@
     --text-main: #000000;
     --card-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
+.hidden {
+    display: none !important;
+}
+
+.form-container {
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+}
+.form-container input {
+    margin: 5px 0;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    width: 100%;
+}
 
 * {
     box-sizing: border-box;
