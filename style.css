@@ -45,11 +45,13 @@ body {
     border-bottom: 1px solid #eee;
     display: flex;
     align-items: center;
+    justify-content: center;
 }
 
 .main-header h1, .section-header h2 {
     margin: 0;
     font-size: 20px;
+    text-align: center;
 }
 
 .categories-grid, .products-grid {
@@ -174,3 +176,4 @@ body {
 .order-content {
     padding-bottom: 100px;
 }
+
