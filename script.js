@@ -8,22 +8,21 @@ try {
 
 const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 
-// БАЗА ДАННЫХ САЙТА
 const categories = [
-    { id: 'feb14', name: '14 февраля', emoji: '❤️' },
-    { id: 'march8', name: '8 марта', emoji: '🌷' },
-    { id: 'march23', name: '23 февраля', emoji: '🎖️' },
-    { id: 'school', name: 'Школьные', emoji: '🔔' },
-    { id: 'gender', name: 'Гендерные', emoji: '🍼' },
-    { id: 'bday', name: 'День рождения', emoji: '🎂' },
-    { id: 'baby', name: 'На выписку', emoji: '🧸' },
-    { id: 'decor', name: 'Оформление', emoji: '🎈' }
+    { id: 'feb14', name: '14 февраля', img: '' },
+    { id: 'march8', name: '8 марта', img: '' },
+    { id: 'march23', name: '23 февраля', img: '' },
+    { id: 'school', name: 'Школьные шарики', img: '' },
+    { id: 'gender', name: 'Гендерные шарики', img: '' },
+    { id: 'bday', name: 'День рождения', img: 'img/bday1.jpg
+    { id: 'baby', name: 'На выписку', img: '' },
+    { id: 'decor', name: 'Оформление', img: '' }
 ];
 
 const products = {
     'feb14': [
-        { id: 1, name: 'Сет "Сердца"', price: 1500, img: 'https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=300' },
-        { id: 2, name: 'Фольгированный шар', price: 400, img: 'https://images.unsplash.com/photo-1525286335722-c30c6b5df541?w=300' }
+        { id: 1, name: 'Сет "Сердца"', price: 1500, img: '' },
+        { id: 2, name: 'Фольгированный шар', price: 400, img: '' }
     ],
     'bday': [
         { id: 10, name: 'Цифра золотая', price: 800, img: 'https://images.unsplash.com/photo-1530103043960-ef38714abb15?w=300' }
@@ -36,13 +35,14 @@ function initCategories() {
     const list = document.getElementById('categories-list');
     list.innerHTML = categories.map(cat => `
         <div class="category-card" onclick="showProducts('${cat.id}', '${cat.name}')">
-            <span class="category-emoji">${cat.emoji}</span>
+            <img src="${cat.img}" class="category-img">
             <span class="category-name">${cat.name}</span>
         </div>
     `).join('');
 }
 
 function showProducts(catId, catName) {
+    window.scrollTo(0,0);
     document.getElementById('categories-screen').classList.add('hidden');
     document.getElementById('products-screen').classList.remove('hidden');
     document.getElementById('category-title').innerText = catName;
@@ -50,15 +50,10 @@ function showProducts(catId, catName) {
     const list = document.getElementById('products-list');
     const items = products[catId] || [];
 
-    if (items.length === 0) {
-        list.innerHTML = '<p style="padding:20px">Товары скоро появятся...</p>';
-        return;
-    }
-
-    list.innerHTML = items.map(p => `
+    list.innerHTML = items.length ? items.map(p => `
         <div class="product-card">
             <img src="${p.img}" class="product-img">
-            <div class="product-info">
+            <div style="padding: 10px;">
                 <div class="product-title">${p.name}</div>
                 <div class="product-price">${p.price} руб.</div>
                 <div class="qty-wrapper">
@@ -68,7 +63,7 @@ function showProducts(catId, catName) {
                 </div>
             </div>
         </div>
-    `).join('');
+    `).join('') : '<p style="grid-column: 1/3; text-align:center; padding: 20px;">Скоро добавим товары!</p>';
 }
 
 function showCategories() {
