@@ -154,12 +154,25 @@ body {
     font-size: 14px;
     font-weight: 500;
     margin-bottom: 5px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
 }
 
 .product-price {
     color: var(--primary-color);
     font-weight: bold;
     font-size: 15px;
+    text-align: center;
+}
+
+.product-art{
+    font-size: 15px;
+    color: rgb(106, 106, 106);
+    text-align: center;
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 5px;
 }
 
 .qty-wrapper {
