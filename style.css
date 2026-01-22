@@ -75,6 +75,10 @@ body {
     background: white;
     box-shadow: var(--card-shadow);
     text-align: left;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    height: 100;
 }
 
 .category-card:active, .product-card:active {
@@ -184,9 +188,10 @@ body {
     align-items: center;
     justify-content: space-between;
     background: var(--sec-bg);
-    border-radius: 10px;
+    border-radius: auto;
     margin-top: 10px;
     padding: 4px;
+
 }
 
 .qty-btn {
