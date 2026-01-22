@@ -71,6 +71,7 @@ function showProducts(catId, catName) {
             <img src="${p.img || 'img/no-photo.jpg'}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=Нет+фото'">
             <div style="padding: 10px;">
                 <div class="product-title">${p.name}</div>
+                <div class="product-art">${p.art}</div>
                 <div class="product-price">${p.price} руб.</div>
                 <div class="qty-wrapper">
                     <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price})">-</button>
@@ -87,8 +88,8 @@ function showCategories() {
     document.getElementById('products-screen').classList.add('hidden');
 }
 
-function changeQty(delta, id, name, price) {
-    if (!cart[id]) cart[id] = { name, price, qty: 0 };
+function changeQty(delta, id, name, price, art) {
+    if (!cart[id]) cart[id] = { name, price, qty: 0, art };
     cart[id].qty += delta;
     if (cart[id].qty <= 0) delete cart[id];
 
@@ -158,6 +159,7 @@ async function submitOrder() {
                 price: item.price,
                 quantity: item.qty,
                 qty: item.qty,
+                art: item.art,
                 sum: item.price * item.qty
             })),
             total_price: Object.values(cart).reduce((s, p) => s + (p.price * p.qty), 0)
