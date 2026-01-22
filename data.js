@@ -10,11 +10,30 @@ const categories = [
 
 const products = {
     'feb14': [
-        { id: 1, name: 'Сет "Сердца"', price: 1500, img: '' },
-        { id: 2, name: 'Фольгированный шар', price: 400, img: '' }
+        { id: 1, name: 'Композиция "Моя любовь"', price: 7000, img: 'feb14/id1.jpg' },
+        { id: 2, name: 'Букет из сердец', price: 8400, img: 'feb14/id2.jpg' }
     ],
-    'bday': [
-        { id: 10, name: 'Цифра золотая', price: 800, img: '' }
-    ]
+    'march8and23feb': [
+        { id: 3, name: 'Композиция " Голубая нежность" ', price: s4100, img: 'bday/id3.jpg' },
+        { id: 4, name: 'Композиция на "День Рождение 1 год" ', price: 4300, img: 'bday/id4.jpg' },
+        { id: 5, name: 'Композиция "День Рождения 3 года" ', price: 4300, img: 'bday/id5.jpg' },
+        { id: 6, name: 'Композиция на День Рождение 19 лет', price: 4300, img: 'bday/id6.jpg' },
+        // { id: 7, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 8, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 9, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 10, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 11, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 12, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 13, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 14, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 15, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 16, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 17, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 18, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 19, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 20, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 21, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
+        // { id: 22, name: 'Композиция на День Рождение 1 год  ', price: 4300, img: 'bday/id4.jpg' },
 
+    ]
 };
