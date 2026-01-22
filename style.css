@@ -148,6 +148,10 @@ body {
 
 .product-info {
     padding: 10px;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    justify-content: space-between;
 }
 
 .product-title {
