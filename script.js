@@ -68,11 +68,16 @@ function showProducts(catId, catName) {
         
         return `
         <div class="product-card">
-            <img src="${p.img || 'img/no-photo.jpg'}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=Нет+фото'">
-            <div style="padding: 10px;">
-                <div class="product-title">${p.name}</div>
-                <div class="product-art">${p.art}</div>
+            <img src="${p.img || 'img/no-photo.jpg'}" class="product-img" onclick="openImage(this.src)">
+            
+            <div class="product-info">
+                <div class="product-top-details">
+                    <div class="product-title">${p.name}</div>
+                    <div class="product-art">арт. ${p.art || '---'}</div>
+                </div>
+
                 <div class="product-price">${p.price} руб.</div>
+
                 <div class="qty-wrapper">
                     <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price}, '${p.art}')">-</button>
                     <span id="qty-${p.id}">${cart[p.id]?.qty || 0}</span>
@@ -80,9 +85,8 @@ function showProducts(catId, catName) {
                 </div>
             </div>
         </div>
-    `}).join('') : '<p style="grid-column: 1/3; text-align:center; padding: 20px;">Скоро добавим товары!</p>';
+        `;}).join('') : '<p style="grid-column: 1/3; text-align:center; padding: 20px;">Скоро добавим товары!</p>';
 }
-
 function showCategories() {
     document.getElementById('categories-screen').classList.remove('hidden');
     document.getElementById('products-screen').classList.add('hidden');
@@ -185,3 +189,4 @@ async function submitOrder() {
 }
 
 initCategories();
+initImageViewer();
