@@ -74,7 +74,7 @@ function showProducts(catId, catName) {
                 <div class="product-art">${p.art}</div>
                 <div class="product-price">${p.price} руб.</div>
                 <div class="qty-wrapper">
-                    <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price})">-</button>
+                    <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price}, '${p.art})">-</button>
                     <span id="qty-${p.id}">${cart[p.id]?.qty || 0}</span>
                     <button class="qty-btn" onclick="changeQty(1, ${p.id}, '${safeName}', ${p.price}, '${p.art}')">+</button>
                 </div>
