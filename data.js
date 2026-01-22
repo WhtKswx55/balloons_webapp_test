@@ -14,7 +14,7 @@ const products = {
         { id: 2, name: 'Фольгированный шар', price: 400, img: '' }
     ],
     'bday': [
-        { id: 10, name: 'Цифра золотая', price: 800, img: 'https://images.unsplash.com/photo-1530103043960-ef38714abb15?w=300' }
+        { id: 10, name: 'Цифра золотая', price: 800, img: '' }
     ]
-    // Сюда можно добавлять остальные категории...
+
 };
