@@ -63,20 +63,23 @@ function showProducts(catId, catName) {
     const list = document.getElementById('products-list');
     const items = products[catId] || [];
 
-    list.innerHTML = items.length ? items.map(p => `
+    list.innerHTML = items.length ? items.map(p => {
+        const safeName = p.name.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+        
+        return `
         <div class="product-card">
-            <img src="${p.img}" class="product-img">
+            <img src="${p.img || 'img/no-photo.jpg'}" class="product-img" onerror="this.src='https://via.placeholder.com/300x200?text=Нет+фото'">
             <div style="padding: 10px;">
                 <div class="product-title">${p.name}</div>
                 <div class="product-price">${p.price} руб.</div>
                 <div class="qty-wrapper">
-                    <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${p.name}', ${p.price})">-</button>
+                    <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price})">-</button>
                     <span id="qty-${p.id}">${cart[p.id]?.qty || 0}</span>
-                    <button class="qty-btn" onclick="changeQty(1, ${p.id}, '${p.name}', ${p.price})">+</button>
+                    <button class="qty-btn" onclick="changeQty(1, ${p.id}, '${safeName}', ${p.price})">+</button>
                 </div>
             </div>
         </div>
-    `).join('') : '<p style="grid-column: 1/3; text-align:center; padding: 20px;">Скоро добавим товары!</p>';
+    `}).join('') : '<p style="grid-column: 1/3; text-align:center; padding: 20px;">Скоро добавим товары!</p>';
 }
 
 function showCategories() {
