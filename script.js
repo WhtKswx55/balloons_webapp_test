@@ -8,6 +8,41 @@ try {
 
 const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 
+function initImageViewer() {
+    const viewer = document.createElement('div');
+    viewer.id = 'image-viewer';
+    viewer.innerHTML = `
+        <img id="full-image" src="">
+        <button id="close-btn" onclick="closeImage()">Закрыть ✕</button>
+    `;
+    viewer.onclick = (e) => {
+        if (e.target.id === 'image-viewer') closeImage();
+    };
+    document.body.appendChild(viewer);
+}
+
+function openImage(src) {
+    if (!src || src.includes('placeholder') || src.includes('no-photo')) return;
+
+    document.getElementById('full-image').src = src;
+    document.getElementById('image-viewer').classList.add('active');
+    tg.BackButton.show();
+    tg.BackButton.onClick(closeImage);
+}
+
+function closeImage() {
+    document.getElementById('image-viewer').classList.remove('active');
+
+    if (document.getElementById('products-screen').classList.contains('hidden')) {
+        tg.BackButton.hide();
+    } else {
+        tg.BackButton.show();
+        tg.BackButton.onClick(showCategories);
+    }
+}
+
+
+
 const categories = [
     { id: 'feb14', name: '14 февраля', img: 'img/14feb.jpg' },
     { id: 'march8and23feb', name: '8 марта и 23 февраля', img: 'img/8march.jpg' },
@@ -153,7 +188,7 @@ async function submitOrder() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
             tg.close();
         } else {
@@ -166,6 +201,3 @@ async function submitOrder() {
 }
 
 initCategories();
-
-
-
