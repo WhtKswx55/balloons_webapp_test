@@ -13,9 +13,9 @@ const NGROK_HEADERS = { "ngrok-skip-browser-warning": "69420" };
 let cart = {};
 let productsData = [];
 let categories = [
-    { id: 'feb14', name: '14 февраля', img: 'img/feb14.jpg' },
-    { id: 'bday', name: 'День рождения', img: 'img/bday.jpg' },
-    { id: 'other', name: 'Другое', img: 'img/other.jpg' }
+    { id: 'feb14', name: '14 февраля', img: '/img/feb14.jpg' },
+    { id: 'bday', name: 'День рождения', img: '/img/bday.jpg' },
+    { id: 'other', name: 'Другое', img: '/img/other.jpg' }
 ];
 
 async function loadProducts() {
@@ -34,7 +34,7 @@ function initCategories() {
     if (!list) return;
     list.innerHTML = categories.map(cat => `
         <div class="category-card" onclick="showProducts('${cat.id}', '${cat.name}')">
-            <img src="${cat.img}" class="category-img" onerror="this.src='img/no-photo.jpg'">
+            <img src="${cat.img}" class="category-img" onerror="this.src='/img/no-photo.jpg'">
             <span class="category-name">${cat.name}</span>
         </div>
     `).join('');
@@ -60,9 +60,11 @@ function showProducts(catId, catName) {
 
     list.innerHTML = items.map(p => {
         const safeName = p.name.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+        const imageSrc = p.img ? (p.img.startsWith('/') ? p.img : '/' + p.img) : '/img/no-photo.jpg';
+        
         return `
         <div class="product-card">
-            <img src="${p.img || 'img/no-photo.jpg'}" class="product-img" onclick="openImage(this.src)" onerror="this.src='img/no-photo.jpg'">
+            <img src="${imageSrc}" class="product-img" onclick="openImage(this.src)" onerror="this.src='/img/no-photo.jpg'">
             <div class="product-info">
                 <div class="product-top-details">
                     <div class="product-title">${p.name}</div>
