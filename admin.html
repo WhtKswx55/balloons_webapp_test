@@ -12,14 +12,14 @@
         .box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
         button.main-btn { width: 100%; background: #28a745; color: white; border: none; padding: 12px; border-radius: 8px; font-weight: bold; cursor: pointer; }
         .item-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid #eee; }
         .item-row img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
         .item-info { flex: 1; }
-        .del-btn { background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 5px; font-size: 12px; }
-        .order-card { padding: 12px; border-bottom: 1px solid #eee; }
-        .order-card:last-child { border-bottom: none; }
+        .actions { display: flex; gap: 5px; }
+        .del-btn { background: #ff4d4d; color: white; border: none; padding: 8px; border-radius: 5px; }
+        .edit-btn { background: #ffc107; color: black; border: none; padding: 8px; border-radius: 5px; }
     </style>
 </head>
 <body>
@@ -31,7 +31,8 @@
 
     <div id="products-tab" class="tab-content active">
         <div class="box">
-            <h3>Добавить товар</h3>
+            <h3 id="form-title">Добавить товар</h3>
+            <input type="hidden" id="p-id">
             <input type="text" id="p-name" placeholder="Название">
             <input type="number" id="p-price" placeholder="Цена">
             <input type="text" id="p-art" placeholder="Артикул">
@@ -41,7 +42,8 @@
                 <option value="other">Другое</option>
             </select>
             <input type="file" id="p-file" accept="image/*">
-            <button class="main-btn" onclick="saveProduct()">Сохранить товар</button>
+            <button class="main-btn" id="save-btn" onclick="saveProduct()">Сохранить товар</button>
+            <button id="cancel-btn" style="display:none; margin-top:10px; background:none; border:none; color:blue;" onclick="resetForm()">Отмена</button>
         </div>
 
         <div class="box">
@@ -59,6 +61,7 @@
 
     <script>
         const h = { "ngrok-skip-browser-warning": "69420" };
+        let currentImg = "img/no-photo.jpg";
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-content, .tab-btn').forEach(el => el.classList.remove('active'));
@@ -70,7 +73,8 @@
 
         async function saveProduct() {
             const fileInput = document.getElementById('p-file');
-            let imgPath = "img/no-photo.jpg";
+            const pId = document.getElementById('p-id').value;
+            let imgPath = currentImg;
 
             if (fileInput.files[0]) {
                 const formData = new FormData();
@@ -81,6 +85,7 @@
             }
 
             const productData = {
+                id: pId || null,
                 name: document.getElementById('p-name').value,
                 price: document.getElementById('p-price').value,
                 art: document.getElementById('p-art').value,
@@ -88,13 +93,43 @@
                 img: imgPath
             };
 
-            const res = await fetch('/api/admin/add_product', {
+            const url = pId ? `/api/admin/edit_product` : `/api/admin/add_product`;
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: { ...h, "Content-Type": "application/json" },
                 body: JSON.stringify(productData)
             });
 
-            if (res.ok) { alert("Товар добавлен!"); location.reload(); }
+            if (res.ok) {
+                alert(pId ? "Обновлено!" : "Добавлено!");
+                resetForm();
+                loadProducts();
+            }
+        }
+
+        function editItem(id, name, price, art, cat, img) {
+            document.getElementById('p-id').value = id;
+            document.getElementById('p-name').value = name;
+            document.getElementById('p-price').value = price;
+            document.getElementById('p-art').value = art;
+            document.getElementById('p-cat').value = cat;
+            currentImg = img;
+
+            document.getElementById('form-title').innerText = "Редактировать товар";
+            document.getElementById('save-btn').innerText = "Обновить данные";
+            document.getElementById('cancel-btn').style.display = "block";
+            window.scrollTo(0,0);
+        }
+
+        function resetForm() {
+            document.getElementById('p-id').value = "";
+            document.getElementById('p-name').value = "";
+            document.getElementById('p-price').value = "";
+            document.getElementById('p-art').value = "";
+            document.getElementById('form-title').innerText = "Добавить товар";
+            document.getElementById('save-btn').innerText = "Сохранить товар";
+            document.getElementById('cancel-btn').style.display = "none";
+            currentImg = "img/no-photo.jpg";
         }
 
         async function loadProducts() {
@@ -107,7 +142,10 @@
                         <b>${p.name}</b><br>
                         <small>${p.price} ₽ | ${p.art}</small>
                     </div>
-                    <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
+                    <div class="actions">
+                        <button class="edit-btn" onclick="editItem(${p.id}, '${p.name}', ${p.price}, '${p.art}', '${p.category_id}', '${p.img}')">✎</button>
+                        <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
+                    </div>
                 </div>
             `).join('') || "Товаров нет";
         }
