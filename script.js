@@ -20,21 +20,20 @@ let categories = [
 
 async function loadProducts() {
     try {
-        const response = await fetch(API_URL, {
-            headers: { "ngrok-skip-browser-warning": "69420" }
+        const response = await fetch(API_URL + '?v=' + Date.now(), { // Добавили v= для обхода кэша
+            headers: {
+                "ngrok-skip-browser-warning": "69420",
+                "Accept": "application/json"
+            }
         });
 
-        const data = await response.json();
-
-        if (data) {
+        if (response.ok) {
+            const data = await response.json();
             productsData = data;
             initCategories();
         }
     } catch (e) {
-        console.error("Ошибка детально:", e);
-        if (productsData.length === 0) {
-            tg.showAlert("Данные не получены: " + e.message);
-        }
+        console.log("Silent error bypass:", e);
     }
 }
 
