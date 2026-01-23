@@ -20,7 +20,6 @@ async function loadProducts() {
         initCategories();
     } catch (e) {
         console.error(e);
-        document.body.innerHTML = '<h3 style="text-align:center; margin-top:50px;">Ошибка загрузки. Перезапустите бота.</h3>';
     }
 }
 
@@ -30,28 +29,22 @@ function initCategories() {
     list.innerHTML = categories.map(cat => `
         <div class="category-card" onclick="showProducts('${cat.id}', '${cat.name}')">
             <img src="${cat.img}" class="category-img" onerror="this.src='img/no-photo.jpg'">
-            <span class="category-name">${cat.name}</span>
+            <div class="category-name">${cat.name}</div>
         </div>
     `).join('');
 }
 
 function showProducts(catId, catName) {
     window.scrollTo(0, 0);
-    const catScreen = document.getElementById('categories-screen');
-    const prodScreen = document.getElementById('products-screen');
-    
-    if (catScreen) catScreen.classList.add('hidden');
-    if (prodScreen) prodScreen.classList.remove('hidden');
-    
-    const title = document.getElementById('category-title');
-    if (title) title.innerText = catName;
+    document.getElementById('categories-screen').classList.add('hidden');
+    document.getElementById('products-screen').classList.remove('hidden');
+    document.getElementById('order-screen').classList.add('hidden');
+    document.getElementById('category-title').innerText = catName;
 
     tg.BackButton.show();
     tg.BackButton.onClick(showCategories);
 
     const list = document.getElementById('products-list');
-    if (!list) return;
-
     const items = productsData.filter(p => String(p.category_id) === String(catId));
 
     if (items.length > 0) {
@@ -60,23 +53,21 @@ function showProducts(catId, catName) {
             const imgPath = p.img ? (p.img.startsWith('http') ? p.img : '/' + p.img) : '/img/no-photo.jpg';
             return `
             <div class="product-card">
-                <img src="${imgPath}" class="product-img" onclick="openImage(this.src)" onerror="this.src='/img/no-photo.jpg'">
+                <img src="${imgPath}" class="product-img" onerror="this.src='/img/no-photo.jpg'">
                 <div class="product-info">
-                    <div class="product-top-details">
-                        <div class="product-title">${p.name}</div>
-                        <div class="product-art">арт. ${p.art || '---'}</div>
-                    </div>
+                    <div class="product-title">${p.name}</div>
+                    <div class="product-art">арт. ${p.art || '---'}</div>
                     <div class="product-price">${p.price} руб.</div>
                     <div class="qty-wrapper">
-                        <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price}, '${p.art}')">-</button>
+                        <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price})">-</button>
                         <span id="qty-${p.id}">${cart[p.id]?.qty || 0}</span>
-                        <button class="qty-btn" onclick="changeQty(1, ${p.id}, '${safeName}', ${p.price}, '${p.art}')">+</button>
+                        <button class="qty-btn" onclick="changeQty(1, ${p.id}, '${safeName}', ${p.price})">+</button>
                     </div>
                 </div>
             </div>`;
         }).join('');
     } else {
-        list.innerHTML = '<p style="grid-column: 1/3; text-align:center; padding: 40px; color: #999;">Товаров пока нет</p>';
+        list.innerHTML = '<p style="text-align:center; padding: 40px; color: #999; grid-column: 1/-1;">Товаров пока нет</p>';
     }
 }
 
@@ -87,8 +78,12 @@ function showCategories() {
     tg.BackButton.hide();
 }
 
-function changeQty(delta, id, name, price, art) {
-    if (!cart[id]) cart[id] = { name, price, qty: 0, art };
+function hideOrder() {
+    showCategories();
+}
+
+function changeQty(delta, id, name, price) {
+    if (!cart[id]) cart[id] = { name, price, qty: 0 };
     cart[id].qty += delta;
     if (cart[id].qty <= 0) delete cart[id];
     const label = document.getElementById(`qty-${id}`);
@@ -108,8 +103,7 @@ function updateMainButton() {
 }
 
 tg.MainButton.onClick(() => {
-    const orderScreen = document.getElementById('order-screen');
-    if (orderScreen && !orderScreen.classList.contains('hidden')) {
+    if (!document.getElementById('order-screen').classList.contains('hidden')) {
         submitOrder();
     } else {
         showOrder();
@@ -117,8 +111,10 @@ tg.MainButton.onClick(() => {
 });
 
 function showOrder() {
+    document.getElementById('categories-screen').classList.add('hidden');
     document.getElementById('products-screen').classList.add('hidden');
     document.getElementById('order-screen').classList.remove('hidden');
+    
     const container = document.getElementById('cart-items');
     let total = 0;
     container.innerHTML = Object.values(cart).map(item => {
@@ -137,7 +133,10 @@ async function submitOrder() {
     const surname = document.getElementById('user-surname').value;
     const date = document.getElementById('order-date').value;
 
-    if (!name || !surname || !date) return tg.showAlert("Заполните все поля!");
+    if (!name || !surname || !date) {
+        tg.showAlert("Заполните все поля в форме заказа!");
+        return;
+    }
 
     tg.MainButton.showProgress();
     const data = {
@@ -163,25 +162,4 @@ async function submitOrder() {
     }
 }
 
-function initImageViewer() {
-    const viewer = document.createElement('div');
-    viewer.id = 'image-viewer';
-    viewer.style = "position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); display:none; align-items:center; justify-content:center; z-index:1000;";
-    viewer.innerHTML = `<img id="full-image" style="max-width:90%; max-height:80%; border-radius:8px;"><button style="position:absolute; top:20px; right:20px; color:white; background:none; border:none; font-size:24px;" onclick="closeImage()">✕</button>`;
-    viewer.onclick = (e) => { if (e.target.id === 'image-viewer') closeImage(); };
-    document.body.appendChild(viewer);
-}
-
-function openImage(src) {
-    if (!src || src.includes('no-photo')) return;
-    document.getElementById('full-image').src = src;
-    document.getElementById('image-viewer').style.display = 'flex';
-}
-
-function closeImage() {
-    const iv = document.getElementById('image-viewer');
-    if (iv) iv.style.display = 'none';
-}
-
 loadProducts();
-initImageViewer();
