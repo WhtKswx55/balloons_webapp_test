@@ -21,7 +21,7 @@ let categories = [
 async function loadProducts() {
     try {
         const response = await fetch(API_URL, { headers: NGROK_HEADERS });
-        if (!response.ok) throw new Error('Ошибка сервера');
+        if (!response.ok) throw new Error();
         productsData = await response.json();
         initCategories();
     } catch (e) {
@@ -44,6 +44,7 @@ function showProducts(catId, catName) {
     window.scrollTo(0,0);
     document.getElementById('categories-screen').classList.add('hidden');
     document.getElementById('products-screen').classList.remove('hidden');
+    document.getElementById('order-screen').classList.add('hidden');
     document.getElementById('category-title').innerText = catName;
 
     tg.BackButton.show();
