@@ -20,12 +20,21 @@ let categories = [
 
 async function loadProducts() {
     try {
-        const response = await fetch(API_URL, { headers: NGROK_HEADERS });
-        if (!response.ok) throw new Error();
-        productsData = await response.json();
-        initCategories();
+        const response = await fetch(API_URL, {
+            headers: { "ngrok-skip-browser-warning": "69420" }
+        });
+
+        const data = await response.json();
+
+        if (data) {
+            productsData = data;
+            initCategories();
+        }
     } catch (e) {
-        tg.showAlert("Ошибка загрузки товаров");
+        console.error("Ошибка детально:", e);
+        if (productsData.length === 0) {
+            tg.showAlert("Данные не получены: " + e.message);
+        }
     }
 }
 
@@ -61,7 +70,7 @@ function showProducts(catId, catName) {
     list.innerHTML = items.map(p => {
         const safeName = p.name.replace(/"/g, '&quot;').replace(/'/g, "\\'");
         const imageSrc = p.img ? (p.img.startsWith('/') ? p.img : '/' + p.img) : '/img/no-photo.jpg';
-        
+
         return `
         <div class="product-card">
             <img src="${imageSrc}" class="product-img" onclick="openImage(this.src)" onerror="this.src='/img/no-photo.jpg'">
