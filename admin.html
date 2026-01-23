@@ -2,103 +2,78 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Админ-панель</title>
     <link rel="stylesheet" href="style.css">
     <style>
-        .admin-container { padding: 20px; font-family: sans-serif; }
-        .tab-content { display: none; }
+        .admin-container { padding: 15px; }
+        .tab-content { display: none; margin-top: 20px; }
         .tab-content.active { display: block; }
-        .order-card { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; background: #f9f9f9; }
-        .form-group { margin-bottom: 15px; }
-        input, select { width: 100%; padding: 10px; margin-top: 5px; border: 1px solid #ccc; border-radius: 5px; }
-        .btn-send { background: #007aff; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; }
+        .order-card { border: 1px solid #ccc; padding: 10px; margin-bottom: 10px; border-radius: 8px; }
+        input, select { width: 100%; padding: 10px; margin: 5px 0 15px; border: 1px solid #ddd; }
+        button { padding: 10px 20px; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="admin-container">
-        <h2>⚙️ Панель управления</h2>
-
-        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-            <button onclick="openTab('orders')">Заказы</button>
-            <button onclick="openTab('add-product')">Добавить товар</button>
-        </div>
+        <h2>Админка</h2>
+        <button onclick="openTab('orders')">Заказы</button>
+        <button onclick="openTab('add-product')">Добавить товар</button>
 
         <div id="orders" class="tab-content active">
-            <h3>Последние заказы</h3>
             <div id="orders-list">Загрузка...</div>
         </div>
 
         <div id="add-product" class="tab-content">
-            <h3>Новый товар</h3>
-            <form id="product-form">
-                <div class="form-group">
-                    <label>Название товара</label>
-                    <input type="text" id="p-name" required placeholder="Например: Шар Сердце">
-                </div>
-                <div class="form-group">
-                    <label>Цена (руб.)</label>
-                    <input type="number" id="p-price" required>
-                </div>
-                <div class="form-group">
-                    <label>Артикул</label>
-                    <input type="text" id="p-art" required>
-                </div>
-                <div class="form-group">
-                    <label>Категория</label>
-                    <select id="p-cat">
-                        <option value="feb14">14 февраля</option>
-                        <option value="bday">День рождения</option>
-                        <option value="other">Другое</option>
-                    </select>
-                </div>
-                <button type="submit" class="btn-send">💾 Сохранить в базу</button>
+            <form id="p-form">
+                <input type="text" id="p-name" placeholder="Название" required>
+                <input type="number" id="p-price" placeholder="Цена" required>
+                <input type="text" id="p-art" placeholder="Артикул" required>
+                <select id="p-cat">
+                    <option value="feb14">14 февраля</option>
+                    <option value="bday">День рождения</option>
+                    <option value="other">Другое</option>
+                </select>
+                <button type="submit" style="background: #28a745; color: white;">Сохранить</button>
             </form>
         </div>
     </div>
 
     <script>
-        function openTab(id) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.getElementById(id).classList.add('active');
-            if(id === 'orders') loadOrders();
+        const h = { "ngrok-skip-browser-warning": "true" };
+
+        function openTab(t) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+            document.getElementById(t).classList.add('active');
+            if(t === 'orders') loadOrders();
         }
 
         async function loadOrders() {
-            const res = await fetch('/api/admin/orders');
+            const res = await fetch('/api/admin/orders', { headers: h });
             const data = await res.json();
-            const list = document.getElementById('orders-list');
-            list.innerHTML = data.map(o => `
+            document.getElementById('orders-list').innerHTML = data.map(o => `
                 <div class="order-card">
-                    <b>Заказ №${o.id}</b> — ${o.total}₽<br>
-                    <small>Клиент: ${o.customer.name} ${o.customer.surname}</small><br>
-                    <div style="font-size: 0.9em; color: #555;">${o.products.map(p => p.name + ' x' + p.qty).join(', ')}</div>
+                    <b>Заказ №${o.id}</b> - ${o.total_price}₽<br>
+                    <small>${o.details}</small>
                 </div>
-            `).join('') || 'Заказов пока нет';
+            `).join('') || 'Нет заказов';
         }
 
-        document.getElementById('product-form').onsubmit = async (e) => {
+        document.getElementById('p-form').onsubmit = async (e) => {
             e.preventDefault();
-            const product = {
+            const p = {
                 name: document.getElementById('p-name').value,
                 price: document.getElementById('p-price').value,
                 art: document.getElementById('p-art').value,
                 category: document.getElementById('p-cat').value
             };
-
-            const res = await fetch('/api/admin/add_product', {
+            await fetch('/api/admin/add_product', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json',
-                'ngrok-skip-browser-warning': 'true'},
-                body: JSON.stringify(product)
+                headers: { 'Content-Type': 'application/json', ...h },
+                body: JSON.stringify(p)
             });
-
-            if(res.ok) {
-                alert('Товар добавлен!');
-                e.target.reset();
-            }
+            alert('Готово!');
+            e.target.reset();
         };
-
         loadOrders();
     </script>
 </body>
