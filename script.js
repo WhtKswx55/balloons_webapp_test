@@ -1,3 +1,4 @@
+alert('hihik')
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -184,5 +185,6 @@ async function submitOrder() {
 
 // Запускаем только когда HTML полностью готов
 document.addEventListener('DOMContentLoaded', loadProducts);
+
 
 
