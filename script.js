@@ -6,8 +6,12 @@ try {
     tg.setBackgroundColor('#ffffff');
 } catch(e) {}
 
-const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
+const SERVER_URL = '/webhook_data';
 const API_URL = '/api/products';
+
+const NGROK_HEADERS = {
+    "ngrok-skip-browser-warning": "true"
+};
 
 let cart = {};
 let productsData = [];
@@ -19,7 +23,9 @@ let categories = [
 
 async function loadProducts() {
     try {
-        const response = await fetch(API_URL);
+        const response = await fetch(API_URL, {
+            headers: NGROK_HEADERS // Добавили обход ngrok
+        });
         productsData = await response.json();
         initCategories();
     } catch (e) {
@@ -27,6 +33,7 @@ async function loadProducts() {
         tg.showAlert("Не удалось загрузить товары");
     }
 }
+
 
 function initImageViewer() {
     const viewer = document.createElement('div');
@@ -79,7 +86,6 @@ function showProducts(catId, catName) {
     tg.BackButton.onClick(showCategories);
 
     const list = document.getElementById('products-list');
-
     const items = productsData.filter(p => p.category_id === catId);
 
     list.innerHTML = items.length ? items.map(p => {
@@ -186,7 +192,10 @@ async function submitOrder() {
     try {
         const response = await fetch(SERVER_URL, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 
+                'Content-Type': 'application/json',
+                ...NGROK_HEADERS 
+            },
             body: JSON.stringify(data)
         });
         if (response.ok) {
@@ -199,5 +208,6 @@ async function submitOrder() {
         tg.showAlert("Ошибка при отправке!");
     }
 }
+
 loadProducts();
 initImageViewer();
