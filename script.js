@@ -23,17 +23,13 @@ let categories = [
 
 async function loadProducts() {
     try {
-        const response = await fetch(API_URL, {
-            headers: NGROK_HEADERS // Добавили обход ngrok
-        });
-        productsData = await response.json();
+        const res = await fetch('/api/products', { headers: NGROK_HEADERS });
+        productsData = await res.json();
         initCategories();
     } catch (e) {
-        console.error("Ошибка загрузки товаров:", e);
-        tg.showAlert("Не удалось загрузить товары");
+        tg.showAlert("Ошибка загрузки товаров");
     }
 }
-
 
 function initImageViewer() {
     const viewer = document.createElement('div');
@@ -192,9 +188,9 @@ async function submitOrder() {
     try {
         const response = await fetch(SERVER_URL, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
-                ...NGROK_HEADERS 
+                ...NGROK_HEADERS
             },
             body: JSON.stringify(data)
         });
