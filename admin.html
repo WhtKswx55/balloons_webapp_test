@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .admin-section { padding: 15px; }
+        .order-item { border-bottom: 1px solid #ddd; padding: 10px 0; }
+        .form-group { margin-bottom: 15px; }
+        input, select { width: 100%; padding: 8px; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <div class="admin-section">
+        <h3>📦 Заказы</h3>
+        <div id="orders-list"></div>
+
+        <hr>
+
+        <h3>➕ Добавить товар</h3>
+        <form id="add-form">
+            <div class="form-group"><input type="text" id="name" placeholder="Название" required></div>
+            <div class="form-group"><input type="number" id="price" placeholder="Цена" required></div>
+            <div class="form-group"><input type="text" id="art" placeholder="Артикул" required></div>
+            <div class="form-group">
+                <select id="cat">
+                    <option value="feb14">14 февраля</option>
+                    <option value="bday">День рождения</option>
+                </select>
+            </div>
+            <div class="form-group"><input type="file" id="file" required></div>
+            <button type="submit" style="width:100%; padding:10px; background:#3390ec; color:white; border:none; border-radius:8px;">Сохранить</button>
+        </form>
+    </div>
+
+    <script>
+        async function loadOrders() {
+            const res = await fetch('/api/orders');
+            const data = await res.json();
+            document.getElementById('orders-list').innerHTML = data.map(o => `
+                <div class="order-item">
+                    <b>Заказ #${o.id}</b> | ${o.total}₽ | <small>${o.status}</small><br>
+                    ${o.products.map(p => `${p.name} (x${p.qty})`).join(', ')}
+                </div>
+            `).join('');
+        }
+
+        document.getElementById('add-form').onsubmit = async (e) => {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('name', document.getElementById('name').value);
+            formData.append('price', document.getElementById('price').value);
+            formData.append('art', document.getElementById('art').value);
+            formData.append('category', document.getElementById('cat').value);
+            formData.append('file', document.getElementById('file').files[0]);
+
+            await fetch('/api/add_product', { method: 'POST', body: formData });
+            alert('Добавлено!');
+            location.reload();
+        }
+
+        loadOrders();
+    </script>
+</body>
+</html>
