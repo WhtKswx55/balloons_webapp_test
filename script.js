@@ -6,31 +6,7 @@ try {
     tg.setBackgroundColor('#ffffff');
 } catch(e) {}
 
-const SERVER_URL = '/webhook_data';
-let cart = {};
-let products = [];
-const categories = [
-    { id: 'feb14', name: '14 февраля', img: 'img/feb14.jpg' },
-    { id: 'bday', name: 'День рождения', img: 'img/bday.jpg' },
-    { id: 'other', name: 'Другое', img: 'img/other.jpg' }
-];
-
-async function loadProductsData() {
-    try {
-        const response = await fetch('/api/products');
-        const data = await response.json();
-
-        const grouped = {};
-        data.forEach(item => {
-            if (!grouped[item.category_id]) grouped[item.category_id] = [];
-            grouped[item.category_id].push(item);
-        });
-        products = grouped;
-        initCategories();
-    } catch (e) {
-        console.error("Ошибка загрузки товаров");
-    }
-}
+const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 
 function initImageViewer() {
     const viewer = document.createElement('div');
@@ -47,6 +23,7 @@ function initImageViewer() {
 
 function openImage(src) {
     if (!src || src.includes('placeholder') || src.includes('no-photo')) return;
+
     document.getElementById('full-image').src = src;
     document.getElementById('image-viewer').classList.add('active');
     tg.BackButton.show();
@@ -55,6 +32,7 @@ function openImage(src) {
 
 function closeImage() {
     document.getElementById('image-viewer').classList.remove('active');
+
     if (document.getElementById('products-screen').classList.contains('hidden')) {
         tg.BackButton.hide();
     } else {
@@ -62,6 +40,9 @@ function closeImage() {
         tg.BackButton.onClick(showCategories);
     }
 }
+
+
+let cart = {};
 
 function initCategories() {
     const list = document.getElementById('categories-list');
@@ -79,21 +60,24 @@ function showProducts(catId, catName) {
     document.getElementById('products-screen').classList.remove('hidden');
     document.getElementById('category-title').innerText = catName;
 
-    tg.BackButton.show();
-    tg.BackButton.onClick(showCategories);
-
     const list = document.getElementById('products-list');
     const items = products[catId] || [];
 
     list.innerHTML = items.length ? items.map(p => {
         const safeName = p.name.replace(/"/g, '&quot;').replace(/'/g, "\\'");
+        
         return `
         <div class="product-card">
             <img src="${p.img || 'img/no-photo.jpg'}" class="product-img" onclick="openImage(this.src)">
+            
             <div class="product-info">
-                <div class="product-title">${p.name}</div>
-                <div class="product-art">арт. ${p.art || '---'}</div>
+                <div class="product-top-details">
+                    <div class="product-title">${p.name}</div>
+                    <div class="product-art">арт. ${p.art || '---'}</div>
+                </div>
+
                 <div class="product-price">${p.price} руб.</div>
+
                 <div class="qty-wrapper">
                     <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price}, '${p.art}')">-</button>
                     <span id="qty-${p.id}">${cart[p.id]?.qty || 0}</span>
@@ -103,27 +87,26 @@ function showProducts(catId, catName) {
         </div>
         `;}).join('') : '<p style="grid-column: 1/3; text-align:center; padding: 20px;">Скоро добавим товары!</p>';
 }
-
 function showCategories() {
     document.getElementById('categories-screen').classList.remove('hidden');
     document.getElementById('products-screen').classList.add('hidden');
-    document.getElementById('order-screen').classList.add('hidden');
-    tg.BackButton.hide();
-    updateMainButton();
 }
 
 function changeQty(delta, id, name, price, art) {
     if (!cart[id]) cart[id] = { name, price, qty: 0, art };
     cart[id].qty += delta;
     if (cart[id].qty <= 0) delete cart[id];
+
     const label = document.getElementById(`qty-${id}`);
     if (label) label.innerText = cart[id]?.qty || 0;
+
     updateMainButton();
 }
 
 function updateMainButton() {
     let total = 0;
     for (let id in cart) total += cart[id].price * cart[id].qty;
+
     if (total > 0) {
         tg.MainButton.setText(`В корзину: ${total} руб.`);
         tg.MainButton.show();
@@ -141,12 +124,8 @@ tg.MainButton.onClick(() => {
 });
 
 function showOrder() {
-    document.getElementById('categories-screen').classList.add('hidden');
-    document.getElementById('products-screen').classList.add('hidden');
+    document.getElementById('app').childNodes.forEach(n => n.nodeType === 1 && n.classList.add('hidden'));
     document.getElementById('order-screen').classList.remove('hidden');
-
-    tg.BackButton.show();
-    tg.BackButton.onClick(showCategories);
 
     const container = document.getElementById('cart-items');
     let total = 0;
@@ -159,6 +138,11 @@ function showOrder() {
     }).join('');
     document.getElementById('total-amount').innerText = total;
     tg.MainButton.setText("✅ Подтвердить заказ");
+}
+
+function hideOrder() {
+    document.getElementById('order-screen').classList.add('hidden');
+    showCategories();
 }
 
 async function submitOrder() {
@@ -192,6 +176,7 @@ async function submitOrder() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(data)
         });
+
         if (response.ok) {
             tg.close();
         } else {
@@ -203,5 +188,5 @@ async function submitOrder() {
     }
 }
 
-loadProductsData();
+initCategories();
 initImageViewer();
