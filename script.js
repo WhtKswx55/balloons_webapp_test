@@ -15,13 +15,26 @@ const categories = [
 
 async function loadProducts() {
     try {
-        const response = await fetch(`${API_URL}?v=${Date.now()}`, { headers: h });
-        if (!response.ok) throw new Error("Ошибка загрузки данных");
-        productsData = await response.json();
+        console.log("Запрос к API...");
+        const response = await fetch(`${API_URL}?v=${Date.now()}`, { 
+            method: 'GET',
+            headers: {
+                'ngrok-skip-browser-warning': 'true',
+                'Accept': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Сервер ответил кодом: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Данные получены:", data);
+        productsData = data;
         initCategories();
     } catch (e) {
-        console.error("Критическая ошибка:", e);
-        tg.showAlert("Не удалось загрузить товары.");
+        console.error("Ошибка fetch:", e);
+        tg.showAlert("Ошибка загрузки: " + e.message);
     }
 }
 
@@ -171,4 +184,5 @@ async function submitOrder() {
 
 // Запускаем только когда HTML полностью готов
 document.addEventListener('DOMContentLoaded', loadProducts);
+
 
