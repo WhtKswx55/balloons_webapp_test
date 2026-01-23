@@ -1,3 +1,4 @@
+alert("JS ЗАПУСТИЛСЯ!");
 const tg = window.Telegram.WebApp;
 tg.expand();
 
@@ -163,3 +164,4 @@ async function submitOrder() {
 }
 
 loadProducts();
+
