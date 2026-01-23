@@ -1,9 +1,8 @@
-alert('hihik')
 const tg = window.Telegram.WebApp;
 tg.expand();
 
 const API_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/api/products';
-const SERVER_URL = '/webhook_data';
+const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data'
 const h = { "ngrok-skip-browser-warning": "69420" };
 
 let cart = {};
@@ -185,6 +184,7 @@ async function submitOrder() {
 
 // Запускаем только когда HTML полностью готов
 document.addEventListener('DOMContentLoaded', loadProducts);
+
 
 
 
