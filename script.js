@@ -21,9 +21,25 @@ let categories = [
     { id: 'other', name: 'Другое', img: 'img/other.jpg' }
 ];
 
+async function loadProducts() {
+    try {
+        const response = await fetch(API_URL, {
+            headers: NGROK_HEADERS
+        });
+        if (!response.ok) throw new Error('Ошибка сервера');
+        productsData = await response.json();
+        initCategories();
+    } catch (e) {
+        console.error(e);
+        tg.showAlert("Не удалось загрузить товары");
+    }
+}
+
 async function loadOrders() {
     try {
-        const res = await fetch('/api/admin/orders', { headers: h });
+        const res = await fetch('/api/admin/orders', { 
+            headers: NGROK_HEADERS 
+        });
         const data = await res.json();
         const list = document.getElementById('orders-list');
         
@@ -44,7 +60,7 @@ async function loadOrders() {
             </div>
         `).join('');
     } catch (e) {
-        console.error("Ошибка загрузки:", e);
+        console.error(e);
         document.getElementById('orders-list').innerText = "Ошибка связи с сервером";
     }
 }
@@ -82,6 +98,7 @@ function closeImage() {
 
 function initCategories() {
     const list = document.getElementById('categories-list');
+    if (!list) return;
     list.innerHTML = categories.map(cat => `
         <div class="category-card" onclick="showProducts('${cat.id}', '${cat.name}')">
             <img src="${cat.img}" class="category-img">
@@ -134,10 +151,8 @@ function changeQty(delta, id, name, price, art) {
     if (!cart[id]) cart[id] = { name, price, qty: 0, art };
     cart[id].qty += delta;
     if (cart[id].qty <= 0) delete cart[id];
-
     const label = document.getElementById(`qty-${id}`);
     if (label) label.innerText = cart[id]?.qty || 0;
-
     updateMainButton();
 }
 
