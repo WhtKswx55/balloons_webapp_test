@@ -21,13 +21,31 @@ let categories = [
     { id: 'other', name: 'Другое', img: 'img/other.jpg' }
 ];
 
-async function loadProducts() {
+async function loadOrders() {
     try {
-        const res = await fetch('/api/products', { headers: NGROK_HEADERS });
-        productsData = await res.json();
-        initCategories();
+        const res = await fetch('/api/admin/orders', { headers: h });
+        const data = await res.json();
+        const list = document.getElementById('orders-list');
+        
+        if (data.length === 0) {
+            list.innerHTML = '<p style="padding: 20px; text-align: center;">Заказов пока нет</p>';
+            return;
+        }
+
+        list.innerHTML = data.map(o => `
+            <div class="order-card" style="border-left: 5px solid ${o.status === 'в обработке' ? '#ffc107' : '#28a745'};">
+                <div style="display: flex; justify-content: space-between;">
+                    <b>Заказ №${o.id}</b>
+                    <span class="status-badge">${o.status}</span>
+                </div>
+                <div style="margin-top: 10px; font-size: 14px;">
+                    ${o.details.replace(/\n/g, '<br>')}
+                </div>
+            </div>
+        `).join('');
     } catch (e) {
-        tg.showAlert("Ошибка загрузки товаров");
+        console.error("Ошибка загрузки:", e);
+        document.getElementById('orders-list').innerText = "Ошибка связи с сервером";
     }
 }
 
