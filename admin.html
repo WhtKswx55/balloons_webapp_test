@@ -2,184 +2,49 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ-панель</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; padding: 15px; background: #f0f2f5; color: #333; margin: 0; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; position: sticky; top: 0; background: #f0f2f5; padding: 10px 0; z-index: 10; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #ddd; cursor: pointer; font-weight: bold; transition: 0.3s; }
-        .tab-btn.active { background: #007bff; color: white; }
-        .box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-size: 16px; }
-        button.main-btn { width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .item-row img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; background: #eee; }
-        .item-info { flex: 1; overflow: hidden; }
-        .item-info b { display: block; white-space: nowrap; text-overflow: ellipsis; overflow: hidden; }
-        .actions { display: flex; gap: 8px; }
-        .del-btn { background: #ff4d4d; color: white; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
-        .edit-btn { background: #ffc107; color: black; border: none; padding: 10px; border-radius: 6px; cursor: pointer; }
-        .order-card { padding: 12px; border-bottom: 1px solid #eee; line-height: 1.4; }
-        .order-card:last-child { border: none; }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Balloons Shop</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
 </head>
 <body>
+    <div id="app">
+        <section id="categories-screen">
+            <header class="main-header">
+                <h1>Выберите категорию</h1>
+            </header>
+            <div class="categories-grid" id="categories-list">
+                </div>
+        </section>
 
-    <div class="tabs">
-        <button class="tab-btn active" id="btn-products" onclick="switchTab('products')">Товары</button>
-        <button class="tab-btn" id="btn-orders" onclick="switchTab('orders')">Заказы</button>
+        <section id="products-screen" class="hidden">
+            <header class="section-header">
+                <button class="back-btn" onclick="showCategories()">← Назад</button>
+                <h2 id="category-title">Категория</h2>
+            </header>
+            <div class="products-grid" id="products-list">
+                </div>
+        </section>
+
+        <section id="order-screen" class="hidden">
+            <header class="section-header">
+                <button class="back-btn" onclick="hideOrder()">← В магазин</button>
+                <h2>Ваш заказ</h2>
+            </header>
+            <div class="order-content">
+                <div id="cart-items"></div>
+                <div class="total-row">
+                    Итого: <span id="total-amount">0</span> руб.
+                </div>
+                <form id="order-form" class="form-container">
+                    <input type="text" id="user-name" placeholder="Имя" required>
+                    <input type="text" id="user-surname" placeholder="Фамилия" required>
+                    <input type="date" id="order-date" required title="Дата праздника">
+                </form>
+            </div>
+        </section>
     </div>
 
-    <div id="products-tab" class="tab-content active">
-        <div class="box">
-            <h3 id="form-title" style="margin-top:0">Добавить товар</h3>
-            <input type="hidden" id="p-id">
-            <input type="text" id="p-name" placeholder="Название">
-            <input type="number" id="p-price" placeholder="Цена">
-            <input type="text" id="p-art" placeholder="Артикул">
-            <select id="p-cat">
-                <option value="feb14">14 февраля</option>
-                <option value="bday">День рождения</option>
-                <option value="other">Другое</option>
-            </select>
-            <input type="file" id="p-file" accept="image/*">
-            <button class="main-btn" id="save-btn" onclick="saveProduct()">Сохранить товар</button>
-            <button id="cancel-btn" style="display:none; width:100%; margin-top:10px; background:none; border:none; color:#007bff; cursor:pointer;" onclick="resetForm()">Отмена / Очистить</button>
-        </div>
-
-        <div class="box">
-            <h3 style="margin-top:0">Список товаров</h3>
-            <div id="products-list">Загрузка товаров...</div>
-        </div>
-    </div>
-
-    <div id="orders-tab" class="tab-content">
-        <div class="box">
-            <h3 style="margin-top:0">История заказов</h3>
-            <div id="orders-list">Загрузка заказов...</div>
-        </div>
-    </div>
-
-    <script>
-        const h = { "ngrok-skip-browser-warning": "69420" };
-        let currentImg = "img/no-photo.jpg";
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            
-            document.getElementById(tab + '-tab').classList.add('active');
-            document.getElementById('btn-' + tab).classList.add('active');
-            
-            if(tab === 'products') loadProducts();
-            if(tab === 'orders') loadOrders();
-        }
-
-        async function saveProduct() {
-            const fileInput = document.getElementById('p-file');
-            const pId = document.getElementById('p-id').value;
-            let imgPath = currentImg;
-
-            if (fileInput.files[0]) {
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                try {
-                    const uploadRes = await fetch('/api/admin/upload', { method: 'POST', headers: h, body: formData });
-                    const uploadData = await uploadRes.json();
-                    imgPath = uploadData.img_path;
-                } catch(e) { alert("Ошибка загрузки фото"); return; }
-            }
-
-            const productData = {
-                id: pId || null,
-                name: document.getElementById('p-name').value,
-                price: document.getElementById('p-price').value,
-                art: document.getElementById('p-art').value,
-                category: document.getElementById('p-cat').value,
-                img: imgPath
-            };
-
-            const url = pId ? `/api/admin/edit_product` : `/api/admin/add_product`;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { ...h, "Content-Type": "application/json" },
-                body: JSON.stringify(productData)
-            });
-
-            if (res.ok) {
-                resetForm();
-                loadProducts();
-            }
-        }
-
-        function editItem(id, name, price, art, cat, img) {
-            document.getElementById('p-id').value = id;
-            document.getElementById('p-name').value = name;
-            document.getElementById('p-price').value = price;
-            document.getElementById('p-art').value = art;
-            document.getElementById('p-cat').value = cat;
-            currentImg = img;
-
-            document.getElementById('form-title').innerText = "Редактировать товар";
-            document.getElementById('save-btn').innerText = "Обновить данные";
-            document.getElementById('cancel-btn').style.display = "block";
-            window.scrollTo({top: 0, behavior: 'smooth'});
-        }
-
-        function resetForm() {
-            document.getElementById('p-id').value = "";
-            document.getElementById('p-name').value = "";
-            document.getElementById('p-price').value = "";
-            document.getElementById('p-art').value = "";
-            document.getElementById('p-file').value = "";
-            document.getElementById('form-title').innerText = "Добавить товар";
-            document.getElementById('save-btn').innerText = "Сохранить товар";
-            document.getElementById('cancel-btn').style.display = "none";
-            currentImg = "img/no-photo.jpg";
-        }
-
-        async function loadProducts() {
-            try {
-                const res = await fetch('/api/products', { headers: h });
-                const data = await res.json();
-                document.getElementById('products-list').innerHTML = data.map(p => `
-                    <div class="item-row">
-                        <img src="${p.img}" onerror="this.src='img/no-photo.jpg'">
-                        <div class="item-info">
-                            <b>${p.name}</b>
-                            <small>${p.price} ₽ | ${p.art || 'нет арт.'}</small>
-                        </div>
-                        <div class="actions">
-                            <button class="edit-btn" onclick="editItem(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.art}', '${p.category_id}', '${p.img}')">✎</button>
-                            <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
-                        </div>
-                    </div>
-                `).join('') || "Товаров нет";
-            } catch(e) { document.getElementById('products-list').innerText = "Ошибка загрузки"; }
-        }
-
-        async function deleteItem(id) {
-            if (!confirm("Удалить этот товар?")) return;
-            await fetch(`/api/admin/product/${id}`, { method: 'DELETE', headers: h });
-            loadProducts();
-        }
-
-        async function loadOrders() {
-            try {
-                const res = await fetch('/api/admin/orders', { headers: h });
-                const data = await res.json();
-                document.getElementById('orders-list').innerHTML = data.map(o => `
-                    <div class="order-card">
-                        <b>Заказ №${o.id}</b> — ${o.total_price} ₽<br>
-                        <small style="color: #666;">${o.details.replace(/\n/g, '<br>')}</small>
-                    </div>
-                `).join('') || "Заказов пока нет";
-            } catch(e) { document.getElementById('orders-list').innerText = "Ошибка загрузки"; }
-        }
-
-        loadProducts();
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
