@@ -1,8 +1,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const API_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/api/products';
-const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
+const API_BASE = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev';
+const API_URL = `${API_BASE}/api/products`;
+const SERVER_URL = `${API_BASE}/webhook_data`;
 const h = { "ngrok-skip-browser-warning": "69420" };
 
 let cart = {};
@@ -178,7 +179,7 @@ async function submitOrder() {
         try {
             const formData = new FormData();
             formData.append('file', photoFile);
-            const uploadRes = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+            const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { method: 'POST', headers: h, body: formData });
             const uploadData = await uploadRes.json();
             uploadedPhoto = uploadData.img_path;
         } catch (e) {
