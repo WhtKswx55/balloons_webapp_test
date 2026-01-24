@@ -34,7 +34,7 @@ body {
 
 .hidden { display: none !important; }
 
-.main-header, .section-header {
+.section-header {
     position: sticky;
     top: 0;
     background: white;
@@ -45,11 +45,54 @@ body {
     align-items: center;
     justify-content: center;
 }
+.main-header {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 100;
+    padding: 10px 15px;
+    border-bottom: 1px solid #eee;
+    display: grid;
+    grid-template-columns: 80px 1fr 80px;
+    align-items: center;
+}
+.header-left {
+    grid-column: 1;
+    display: flex;
+    justify-content: flex-start;
+}
 
-.main-header h1, .section-header h2 {
+.detail-img {
+    width: 100%;
+    height: auto;
+    max-height: 300px;
+    object-fit: contain;
+    background: #fff;
+}
+
+
+.header-btn {
+    background: var(--sec-bg);
+    border: none;
+    padding: 6px 10px;
+    border-radius: 10px;
+    color: var(--primary-color);
+    font-weight: 600;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+.section-header h2 {
     margin: 0;
     font-size: 18px;
     text-align: center;
+}
+
+.main-header h1, .main-header h2 {
+    margin: 0;
+    font-size: 17px;
+    text-align: center;
+    grid-column: 2;
 }
 
 .categories-grid, .products-grid {
