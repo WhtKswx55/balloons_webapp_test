@@ -24,15 +24,22 @@ async function loadProducts() {
         productsData = await response.json();
         initCategories();
     } catch (e) {
-        tg.showAlert("Ошибка: " + e.message);
+        tg.showAlert("Ошибка загрузки: " + e.message);
         initCategories();
     }
 }
 
 function getFullImgPath(path) {
     if (!path) return 'img/no-photo.jpg';
-    const base = path.startsWith('http') ? path : SERVER_BASE + path;
-    return base + (base.includes('?') ? '&' : '?') + 't=' + Date.now();
+    if (path.startsWith('http')) return path;
+    return SERVER_BASE + (path.startsWith('/') ? '' : '/') + path;
+}
+
+function hideAllScreens() {
+    ['categories-screen', 'products-screen', 'order-screen', 'detail-screen'].forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.classList.add('hidden');
+    });
 }
 
 function initCategories() {
@@ -53,12 +60,14 @@ function showProducts(catId, catName) {
     hideAllScreens();
     document.getElementById('products-screen').classList.remove('hidden');
     document.getElementById('category-title').innerText = catName;
+    
     tg.BackButton.show();
+    tg.BackButton.offClick(initCategories); 
     tg.BackButton.onClick(initCategories);
 
     const list = document.getElementById('products-list');
     const items = productsData.filter(p => String(p.category_id) === String(catId));
-
+    
     list.innerHTML = items.length > 0 ? items.map(p => `
         <div class="product-card">
             <img src="${getFullImgPath(p.img)}" class="product-img" onclick="showProductDetail(${p.id})" onerror="this.src='img/no-photo.jpg'">
@@ -72,7 +81,7 @@ function showProducts(catId, catName) {
                     <button class="qty-btn" onclick="updateQty(1, ${p.id})">+</button>
                 </div>
             </div>
-        </div>`).join('') : '<p style="grid-column:1/-1; text-align:center; padding:40px; color:#999;">Пусто 🎈</p>';
+        </div>`).join('') : '<p style="grid-column:1/-1; text-align:center; padding:40px;">Пусто 🎈</p>';
 }
 
 function showProductDetail(id) {
@@ -81,7 +90,7 @@ function showProductDetail(id) {
     hideAllScreens();
     const screen = document.getElementById('detail-screen');
     screen.classList.remove('hidden');
-
+    
     const imgUrl = getFullImgPath(p.img);
 
     screen.innerHTML = `
@@ -93,21 +102,31 @@ function showProductDetail(id) {
                 <div class="detail-price" style="color:var(--primary-color); font-weight:800; font-size:24px; margin-bottom:15px;">${p.price} руб.</div>
                 <div class="detail-desc" style="text-align:center; margin-bottom:25px;">${p.description || 'Описание уточняйте у менеджера ✨'}</div>
                 <button class="main-btn-alt" onclick="updateQty(1, ${p.id}); initCategories();">🛒 В корзину и назад</button>
-                <button class="header-btn" onclick="showProducts('${p.category_id}', 'Назад')" style="margin-top:15px; width:100%; border:1px solid #ddd; background:none;">Назад к списку</button>
             </div>
         </div>
     `;
+    
     tg.BackButton.show();
+    tg.BackButton.offClick(); 
     tg.BackButton.onClick(() => showProducts(p.category_id, "Назад"));
 }
 
 function updateQty(delta, id) {
     const p = productsData.find(x => x.id === id);
     if (!p) return;
-    if (!cart[id]) cart[id] = { ...p, qty: 0 };
+    if (!cart[id]) {
+        cart[id] = { 
+            id: p.id, 
+            name: p.name, 
+            price: p.price, 
+            img: p.img, 
+            art: p.art, 
+            qty: 0 
+        };
+    }
     cart[id].qty += delta;
     if (cart[id].qty <= 0) delete cart[id];
-
+    
     const label = document.getElementById(`qty-${id}`);
     if (label) label.innerText = cart[id]?.qty || 0;
     updateMainButton();
@@ -115,27 +134,32 @@ function updateQty(delta, id) {
 
 function updateMainButton() {
     const total = Object.values(cart).reduce((sum, item) => sum + (item.price * item.qty), 0);
+    tg.MainButton.offClick(handleMainButtonClick);
     if (total > 0) {
         tg.MainButton.setText(`Оформить заказ: ${total} руб.`);
         tg.MainButton.show();
+        tg.MainButton.onClick(handleMainButtonClick);
     } else {
         tg.MainButton.hide();
     }
 }
 
-tg.MainButton.onClick(() => {
-    if (!document.getElementById('order-screen').classList.contains('hidden')) submitOrder();
-    else showOrder();
-});
+function handleMainButtonClick() {
+    if (!document.getElementById('order-screen').classList.contains('hidden')) {
+        submitOrder();
+    } else {
+        showOrder();
+    }
+}
 
 function showOrder() {
     hideAllScreens();
     document.getElementById('order-screen').classList.remove('hidden');
     const container = document.getElementById('cart-items');
-
+    
     container.innerHTML = Object.values(cart).map(item => `
         <div class="cart-item">
-            <img src="${getFullImgPath(item.img)}" class="cart-thumb">
+            <img src="${getFullImgPath(item.img)}" class="cart-thumb" onerror="this.src='img/no-photo.jpg'">
             <div class="cart-info">
                 <div class="cart-name">${item.name}</div>
                 <div class="cart-price" style="color:var(--primary-color); font-weight:700;">${item.price} ₽</div>
@@ -145,14 +169,15 @@ function showOrder() {
                     <button class="qty-btn" onclick="updateQtyCart(1, ${item.id})">+</button>
                 </div>
             </div>
-            <button onclick="updateQtyCart(-999, ${item.id})" style="background:none; border:none; color:red; font-size:22px; padding:10px;">✕</button>
-        </div>`).join('') || '<p style="text-align:center; padding:40px;">Корзина пуста 🛍️</p>';
+            <button onclick="updateQtyCart(-999, ${item.id})" style="background:none; border:none; color:red; font-size:22px;">✕</button>
+        </div>`).join('') || '<p style="text-align:center; padding:40px;">В корзине пусто</p>';
 
     document.getElementById('total-amount').innerText = Object.values(cart).reduce((s, i) => s + (i.price * i.qty), 0);
     tg.MainButton.setText("✅ Отправить заказ");
-
-    const header = document.querySelector('#order-screen .main-header');
-    header.innerHTML = `<button class="header-btn" onclick="initCategories()">🏠 В магазин</button><h2 style="margin:0; font-size:16px;">Оформление</h2><div style="width:40px;"></div>`;
+    
+    tg.BackButton.show();
+    tg.BackButton.offClick();
+    tg.BackButton.onClick(initCategories);
 }
 
 function updateQtyCart(delta, id) {
@@ -162,19 +187,16 @@ function updateQtyCart(delta, id) {
 
 function openImageViewer(url) {
     const viewer = document.getElementById('image-viewer');
-    document.getElementById('full-image').src = url;
-    viewer.classList.add('active');
+    const fullImg = document.getElementById('full-image');
+    if (viewer && fullImg) {
+        fullImg.src = url;
+        viewer.classList.add('active');
+    }
 }
 
 function closeImageViewer() {
-    document.getElementById('image-viewer').classList.remove('active');
-}
-
-function hideAllScreens() {
-    ['categories-screen', 'products-screen', 'order-screen', 'detail-screen'].forEach(s => {
-        const el = document.getElementById(s);
-        if (el) el.classList.add('hidden');
-    });
+    const viewer = document.getElementById('image-viewer');
+    if (viewer) viewer.classList.remove('active');
 }
 
 async function submitOrder() {
@@ -185,7 +207,7 @@ async function submitOrder() {
     const address = document.getElementById('user-address').value;
 
     if (!name || !surname || !date || (deliveryType === 'delivery' && !address)) {
-        tg.showAlert("Заполните обязательные поля! 🎈");
+        tg.showAlert("Заполните поля!");
         return;
     }
 
@@ -200,12 +222,16 @@ async function submitOrder() {
     };
 
     try {
-        const res = await fetch(SERVER_URL, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        const res = await fetch(SERVER_URL, { 
+            method: 'POST', 
+            headers: { ...h, 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(data) 
+        });
         if (res.ok) tg.close();
-        else throw new Error();
+        else throw new Error("Сервер вернул ошибку");
     } catch (e) {
         tg.MainButton.hideProgress();
-        tg.showAlert("Ошибка отправки заказа");
+        tg.showAlert("Ошибка отправки: " + e.message);
     }
 }
 
