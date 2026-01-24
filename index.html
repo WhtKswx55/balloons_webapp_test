@@ -13,8 +13,7 @@
             <header class="main-header">
                 <h1>Выберите категорию</h1>
             </header>
-            <div class="categories-grid" id="categories-list">
-                </div>
+            <div class="categories-grid" id="categories-list"></div>
         </section>
 
         <section id="products-screen" class="hidden">
@@ -22,8 +21,15 @@
                 <button class="back-btn" onclick="showCategories()">← Назад</button>
                 <h2 id="category-title">Категория</h2>
             </header>
-            <div class="products-grid" id="products-list">
-                </div>
+            <div class="products-grid" id="products-list"></div>
+        </section>
+
+        <section id="detail-screen" class="hidden">
+            <header class="section-header">
+                <button class="back-btn" id="detail-back-btn">← Назад</button>
+                <h2>Описание товара</h2>
+            </header>
+            <div id="product-detail-content"></div>
         </section>
 
         <section id="order-screen" class="hidden">
@@ -36,15 +42,45 @@
                 <div class="total-row">
                     Итого: <span id="total-amount">0</span> руб.
                 </div>
-                <form id="order-form" class="form-container">
+                <div class="form-container">
                     <input type="text" id="user-name" placeholder="Имя" required>
                     <input type="text" id="user-surname" placeholder="Фамилия" required>
-                    <input type="date" id="order-date" required title="Дата праздника">
-                </form>
+                    <input type="date" id="order-date" required>
+
+                    <div class="delivery-selector">
+                        <label class="field-label">Способ получения:</label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="delivery-type" value="pickup" checked onchange="toggleAddress(false)"> Самовывоз</label>
+                            <label><input type="radio" name="delivery-type" value="delivery" onchange="toggleAddress(true)"> Доставка</label>
+                        </div>
+                    </div>
+
+                    <input type="text" id="user-address" placeholder="Адрес доставки (улица, дом, кв)" class="hidden">
+
+                    <textarea id="user-wishes" placeholder="Здесь вы можете оставить свои пожелания"></textarea>
+
+                    <div class="file-input-wrapper">
+                        <label for="user-photo">Прикрепить фото-пример:</label>
+                        <input type="file" id="user-photo" accept="image/*">
+                    </div>
+                </div>
             </div>
         </section>
+
+        <footer class="footer-contacts">
+            <p>Связаться с нами:</p>
+            <div class="social-links">
+                <a href="https://t.me/your_admin_link">Telegram</a>
+                <a href="https://vk.com/your_vk_link">Мы в ВК</a>
+            </div>
+        </footer>
     </div>
+
+    <div id="image-viewer">
+        <img id="full-image" src="" alt="Full view">
+        <button id="close-btn" onclick="closeImageViewer()">Закрыть</button>
+    </div>
+
     <script src="script.js"></script>
 </body>
-
 </html>
