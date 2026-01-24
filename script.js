@@ -1,8 +1,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const API_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/api/products';
-const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
+const SERVER_BASE = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev';
+const API_URL = `${SERVER_BASE}/api/products`;
+const SERVER_URL = `${SERVER_BASE}/webhook_data`;
 const h = { "ngrok-skip-browser-warning": "69420" };
 
 let cart = {};
@@ -43,6 +44,12 @@ function initCategories() {
     `).join('');
 }
 
+function getFullImgPath(path) {
+    if (!path) return 'img/no-photo.jpg';
+    if (path.startsWith('http')) return path;
+    return SERVER_BASE + path;
+}
+
 function showProducts(catId, catName) {
     window.scrollTo(0, 0);
     hideAllScreens();
@@ -58,11 +65,11 @@ function showProducts(catId, catName) {
     if (items.length > 0) {
         list.innerHTML = items.map(p => {
             const safeName = p.name.replace(/"/g, '&quot;');
-            const imgPath = p.img || 'img/no-photo.jpg';
+            const imgUrl = getFullImgPath(p.img);
             const art = p.art || '---';
             return `
             <div class="product-card">
-                <img src="${imgPath}" class="product-img" onclick="showProductDetail(${p.id})" onerror="this.src='img/no-photo.jpg'">
+                <img src="${imgUrl}" class="product-img" onclick="showProductDetail(${p.id})" onerror="this.src='img/no-photo.jpg'">
                 <div class="product-info">
                     <div class="product-title" onclick="showProductDetail(${p.id})">${p.name}</div>
                     <div class="product-art">арт. ${art}</div>
@@ -88,9 +95,10 @@ function showProductDetail(id) {
     screen.classList.remove('hidden');
     const art = p.art || '---';
     const safeName = p.name.replace(/"/g, '&quot;');
+    const imgUrl = getFullImgPath(p.img);
     screen.innerHTML = `
         <div class="detail-container">
-            <img src="${p.img}" class="detail-img" onerror="this.src='img/no-photo.jpg'">
+            <img src="${imgUrl}" class="detail-img" onerror="this.src='img/no-photo.jpg'">
             <h2>${p.name}</h2>
             <p class="detail-art">Артикул: ${art}</p>
             <p class="detail-desc">${p.description || 'Описание отсутствует'}</p>
@@ -159,12 +167,9 @@ function showOrder() {
     tg.MainButton.setText("✅ Отправить заказ");
 }
 
-function hideOrder() {
-    showCategories();
-}
-
 function toggleAddress(show) {
     const addr = document.getElementById('user-address');
+    if (!addr) return;
     if (show) {
         addr.classList.remove('hidden');
     } else {
@@ -194,7 +199,7 @@ async function submitOrder() {
         try {
             const formData = new FormData();
             formData.append('file', photoFile);
-            const uploadRes = await fetch('/api/admin/upload', { method: 'POST', body: formData });
+            const uploadRes = await fetch(`${SERVER_BASE}/api/admin/upload`, { method: 'POST', body: formData });
             const uploadData = await uploadRes.json();
             uploadedPhoto = uploadData.img_path;
         } catch (e) {
