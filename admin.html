@@ -67,6 +67,7 @@
     </div>
 
     <script>
+        const API_BASE = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev';
         const h = { "ngrok-skip-browser-warning": "69420" };
         let currentImg = "img/no-photo.jpg";
 
@@ -96,7 +97,7 @@
             if (fileInput.files[0]) {
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
-                const uploadRes = await fetch('/api/admin/upload', { method: 'POST', headers: h, body: formData });
+                const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { method: 'POST', headers: h, body: formData });
                 const uploadData = await uploadRes.json();
                 imgPath = uploadData.img_path;
             }
@@ -111,7 +112,7 @@
                 img: imgPath
             };
 
-            await fetch(pId ? '/api/admin/edit_product' : '/api/admin/add_product', {
+            await fetch(pId ? `${API_BASE}/api/admin/edit_product` : `${API_BASE}/api/admin/add_product`, {
                 method: 'POST',
                 headers: { ...h, "Content-Type": "application/json" },
                 body: JSON.stringify(data)
@@ -121,7 +122,7 @@
 
         async function loadProducts() {
             const list = document.getElementById('products-list');
-            const res = await fetch(`/api/products?v=${Date.now()}`, { headers: h });
+            const res = await fetch(`${API_BASE}/api/products?v=${Date.now()}`, { headers: h });
             const data = await res.json();
 
             let html = '';
@@ -172,7 +173,7 @@
 
         async function loadOrders() {
             const list = document.getElementById('orders-list');
-            const res = await fetch('/api/admin/orders', { headers: h });
+            const res = await fetch(`${API_BASE}/api/admin/orders`, { headers: h });
             const data = await res.json();
             list.innerHTML = data.map(o => {
                 const isCancelled = o.status === 'cancel';
@@ -194,7 +195,7 @@
         }
 
         async function updateStatus(id, status) {
-            await fetch('/api/admin/order/update', {
+            await fetch(`${API_BASE}/api/admin/order/update`, {
                 method: 'POST',
                 headers: { ...h, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id, status })
@@ -202,8 +203,8 @@
             loadOrders();
         }
 
-        async function deleteItem(id) { if(confirm("Удалить товар?")) { await fetch(`/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
-        async function deleteOrder(id) { if(confirm("Удалить заказ?")) { await fetch(`/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
+        async function deleteItem(id) { if(confirm("Удалить товар?")) { await fetch(`${API_BASE}/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
+        async function deleteOrder(id) { if(confirm("Удалить заказ?")) { await fetch(`${API_BASE}/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
 
         document.getElementById('save-btn').onclick = saveProduct;
         document.getElementById('cancel-btn').onclick = resetForm;
