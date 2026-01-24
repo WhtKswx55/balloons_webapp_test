@@ -2,21 +2,26 @@ const tg = window.Telegram.WebApp;
 tg.expand();
 
 const API_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/api/products';
-const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data'
+const SERVER_URL = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev/webhook_data';
 const h = { "ngrok-skip-browser-warning": "69420" };
 
 let cart = {};
 let productsData = [];
 const categories = [
-    { id: 'feb14', name: '14 февраля', img: 'img/feb14.jpg' },
+    { id: 'feb14', name: '14 февраля', img: 'img/14feb.jpg' },
+    { id: '23and8', name: '8 марта и 23 февраля', img: 'img/23and8.jpg'},
+    { id; 'school', name: 'Школьные шарики', img: 'img/school.jgp'},
+    { id: 'gender', name: 'Гендерные шарики', img: 'img/gender.jpg'},
     { id: 'bday', name: 'День рождения', img: 'img/bday.jpg' },
+    { id: 'vipiska', name: 'На выписку', img: 'img/vipiska.jpg'},
     { id: 'other', name: 'Другое', img: 'img/other.jpg' }
 ];
+
 
 async function loadProducts() {
     try {
         console.log("Запрос к API...");
-        const response = await fetch(`${API_URL}?v=${Date.now()}`, { 
+        const response = await fetch(`${API_URL}?v=${Date.now()}`, {
             method: 'GET',
             headers: {
                 'ngrok-skip-browser-warning': 'true',
@@ -184,7 +189,3 @@ async function submitOrder() {
 
 // Запускаем только когда HTML полностью готов
 document.addEventListener('DOMContentLoaded', loadProducts);
-
-
-
-
