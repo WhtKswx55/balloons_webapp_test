@@ -46,8 +46,11 @@ function initCategories() {
 
 function getFullImgPath(path) {
     if (!path) return 'img/no-photo.jpg';
-    if (path.startsWith('http')) return path;
-    return SERVER_BASE + path;
+
+    if (path.startsWith('http')) {
+        return path + (path.includes('?') ? '&' : '?') + 't=' + Date.now();
+    }
+    return SERVER_BASE + path + '?t=' + Date.now();
 }
 
 function showProducts(catId, catName) {
