@@ -12,18 +12,19 @@
         .box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
         .tab-content { display: none; }
         .tab-content.active { display: block; }
-        input, select { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
+        textarea { height: 80px; resize: vertical; }
         button.main-btn { width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        .item-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #eee; }
-        .item-row img { width: 50px; height: 50px; border-radius: 6px; object-fit: cover; }
-        .actions { display: flex; gap: 8px; }
-        .del-btn { background: #ff4d4d; color: white; border: none; padding: 10px; border-radius: 6px; }
-        .edit-btn { background: #ffc107; border: none; padding: 10px; border-radius: 6px; }
-        .order-card { padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 10px; background: #fff; position: relative; }
+        .category-header { background: #e9ecef; padding: 8px 12px; border-radius: 6px; font-weight: bold; margin: 15px 0 10px 0; font-size: 14px; color: #495057; }
+        .item-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; }
+        .item-row img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
+        .actions { display: flex; gap: 5px; }
+        .del-btn { background: #ff4d4d; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
+        .edit-btn { background: #ffc107; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
+        .order-card { padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; background: #fff; position: relative; }
         .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .status-select { padding: 5px; border-radius: 5px; font-weight: bold; width: auto; margin: 0; }
-        .order-del-btn { position: absolute; bottom: 15px; right: 15px; background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 12px; }
-        .status-cancel { background: #f8d7da; color: #721c24; border-color: #f5c6cb; }
+        .status-select { padding: 6px; border-radius: 6px; font-weight: bold; width: auto; margin: 0; font-size: 13px; }
+        .order-del-btn { position: absolute; bottom: 15px; right: 15px; background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -49,9 +50,10 @@
                 <option value="vipiska">На выписку</option>
                 <option value="other">Другое</option>
             </select>
+            <textarea id="p-desc" placeholder="Описание товара"></textarea>
             <input type="file" id="p-file" accept="image/*">
             <button class="main-btn" id="save-btn">Сохранить</button>
-            <button id="cancel-btn" style="display:none; width:100%; margin-top:10px; background:none; border:none; color:#007bff;">Отмена</button>
+            <button id="cancel-btn" style="display:none; width:100%; margin-top:10px; background:none; border:none; color:#007bff; cursor: pointer;">Отмена</button>
         </div>
         <div class="box">
             <div id="products-list"></div>
@@ -67,6 +69,16 @@
     <script>
         const h = { "ngrok-skip-browser-warning": "69420" };
         let currentImg = "img/no-photo.jpg";
+
+        const categories = [
+            { id: 'feb14', name: '14 февраля' },
+            { id: '23and8', name: '8 марта и 23 февраля' },
+            { id: 'school', name: 'Школьные шарики' },
+            { id: 'gender', name: 'Гендерные шарики' },
+            { id: 'bday', name: 'День рождения' },
+            { id: 'vipiska', name: 'На выписку' },
+            { id: 'other', name: 'Другое' }
+        ];
 
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
@@ -95,6 +107,7 @@
                 price: document.getElementById('p-price').value,
                 art: document.getElementById('p-art').value,
                 category: document.getElementById('p-cat').value,
+                description: document.getElementById('p-desc').value,
                 img: imgPath
             };
 
@@ -110,27 +123,38 @@
             const list = document.getElementById('products-list');
             const res = await fetch(`/api/products?v=${Date.now()}`, { headers: h });
             const data = await res.json();
-            list.innerHTML = data.map(p => `
-                <div class="item-row">
-                    <img src="${p.img}" onerror="this.src='/img/no-photo.jpg'">
-                    <div style="flex:1"><b>${p.name}</b><br><small>${p.price}₽ | Арт: ${p.art}</small></div>
-                    <div class="actions">
-                        <button class="edit-btn" onclick="editItem(${p.id},'${p.name}',${p.price},'${p.art}','${p.category_id}','${p.img}')">✎</button>
-                        <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
-                    </div>
-                </div>
-            `).join('');
+
+            let html = '';
+            categories.forEach(cat => {
+                const catItems = data.filter(p => String(p.category_id) === String(cat.id));
+                if (catItems.length > 0) {
+                    html += `<div class="category-header">${cat.name}</div>`;
+                    html += catItems.map(p => `
+                        <div class="item-row">
+                            <img src="${p.img}" onerror="this.src='/img/no-photo.jpg'">
+                            <div style="flex:1"><b>${p.name}</b><br><small>${p.price}₽ | Арт: ${p.art}</small></div>
+                            <div class="actions">
+                                <button class="edit-btn" onclick="editItem(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.price},'${p.art}','${p.category_id}','${p.img}','${(p.description || '').replace(/'/g, "\\'")}')">✎</button>
+                                <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            });
+            list.innerHTML = html || "Товаров нет";
         }
 
-        function editItem(id, name, price, art, cat, img) {
+        function editItem(id, name, price, art, cat, img, desc) {
             document.getElementById('p-id').value = id;
             document.getElementById('p-name').value = name;
             document.getElementById('p-price').value = price;
             document.getElementById('p-art').value = art;
             document.getElementById('p-cat').value = cat;
+            document.getElementById('p-desc').value = desc;
             currentImg = img;
             document.getElementById('form-title').innerText = "Редактировать";
             document.getElementById('cancel-btn').style.display = "block";
+            window.scrollTo(0,0);
         }
 
         function resetForm() {
@@ -138,6 +162,8 @@
             document.getElementById('p-name').value = "";
             document.getElementById('p-price').value = "";
             document.getElementById('p-art').value = "";
+            document.getElementById('p-cat').value = "feb14";
+            document.getElementById('p-desc').value = "";
             document.getElementById('p-file').value = "";
             document.getElementById('form-title').innerText = "Добавить товар";
             document.getElementById('cancel-btn').style.display = "none";
@@ -161,7 +187,7 @@
                         </select>
                     </div>
                     <div style="font-size:14px">Сумма: <b>${o.total_price} ₽</b></div>
-                    <small style="display:block; white-space:pre-wrap; margin-top:5px;">${o.details}</small>
+                    <small style="display:block; white-space:pre-wrap; margin-top:5px; color:#555;">${o.details}</small>
                     <button class="order-del-btn" onclick="deleteOrder(${o.id})">Удалить</button>
                 </div>
             `}).join('');
@@ -176,8 +202,8 @@
             loadOrders();
         }
 
-        async function deleteItem(id) { if(confirm("Удалить?")) { await fetch(`/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
-        async function deleteOrder(id) { if(confirm("Удалить?")) { await fetch(`/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
+        async function deleteItem(id) { if(confirm("Удалить товар?")) { await fetch(`/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
+        async function deleteOrder(id) { if(confirm("Удалить заказ?")) { await fetch(`/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
 
         document.getElementById('save-btn').onclick = saveProduct;
         document.getElementById('cancel-btn').onclick = resetForm;
