@@ -97,9 +97,8 @@ body {
     padding: 10px;
     display: flex;
     flex-direction: column;
-    flex-grow: 1;
-    text-align: center;
     align-items: center;
+    text-align: center;
 }
 
 .product-title {
@@ -121,10 +120,10 @@ body {
     width: 100%;
 }
 
-.product-art { 
-    font-size: 12px; 
-    color: #888; 
-    margin-bottom: 8px; 
+.product-art {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 8px;
     width: 100%;
 }
 
@@ -135,26 +134,25 @@ body {
 .detail-container {
     display: flex;
     flex-direction: column;
-    position: relative;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 20px;
 }
 
 .detail-img {
     width: 100%;
-    height: 350px;
-    object-fit: cover;
+    max-height: 380px; 
+    object-fit: contain;
+    background: #fdfdfd;
+    cursor: zoom-in;
     border-bottom-left-radius: 25px;
     border-bottom-right-radius: 25px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .detail-info-block {
-    padding: 25px;
-    margin-top: -30px;
-    background: white;
-    border-radius: 30px 30px 0 0;
-    position: relative;
-    z-index: 2;
-    text-align: center;
+    padding: 20px;
+    width: 100%;
 }
 
 .detail-art {
@@ -176,11 +174,9 @@ body {
     font-size: 15px;
     line-height: 1.6;
     color: #444;
-    margin-bottom: 25px;
-    background: #f9f9fb;
-    padding: 15px;
-    border-radius: 15px;
-    text-align: left;
+    margin: 15px 0 25px 0;
+    text-align: center; 
+    padding: 0 10px;
 }
 
 .detail-price {
@@ -273,17 +269,31 @@ body {
 #image-viewer {
     display: none;
     position: fixed;
-    z-index: 1000;
+    z-index: 2000;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(0,0,0,0.9);
+    background: rgba(0,0,0,0.95);
     flex-direction: column;
     justify-content: center;
     align-items: center;
 }
 
 #image-viewer.active { display: flex; }
-#full-image { max-width: 90%; max-height: 80%; border-radius: 10px; }
-#close-btn { margin-top: 20px; padding: 10px 20px; border-radius: 20px; border: none; font-weight: bold; }
+#full-image { 
+    max-width: 95%; 
+    max-height: 85%; 
+    border-radius: 10px; 
+    object-fit: contain;
+}
+.close-viewer {
+    margin-top: 20px;
+    padding: 12px 30px;
+    background: var(--primary-color);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: bold;
+    cursor: pointer;
+}
 
 .total-row { padding: 15px; text-align: right; font-weight: bold; font-size: 18px; }
 .back-btn { background: #eee; border: none; padding: 8px 12px; border-radius: 8px; color: var(--primary-color); cursor: pointer; }
