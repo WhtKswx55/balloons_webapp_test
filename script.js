@@ -20,11 +20,7 @@ const categories = [
 
 async function loadProducts() {
     try {
-        const response = await fetch(`${API_URL}?v=${Date.now()}`, {
-            method: 'GET',
-            headers: h
-        });
-        if (!response.ok) throw new Error(`Status: ${response.status}`);
+        const response = await fetch(`${API_URL}?v=${Date.now()}`, { method: 'GET', headers: h });
         productsData = await response.json();
         initCategories();
     } catch (e) {
@@ -33,9 +29,17 @@ async function loadProducts() {
     }
 }
 
+function getFullImgPath(path) {
+    if (!path) return 'img/no-photo.jpg';
+    const base = path.startsWith('http') ? path : SERVER_BASE + path;
+    return base + (base.includes('?') ? '&' : '?') + 't=' + Date.now();
+}
+
 function initCategories() {
+    hideAllScreens();
+    document.getElementById('categories-screen').classList.remove('hidden');
+    tg.BackButton.hide();
     const list = document.getElementById('categories-list');
-    if (!list) return;
     list.innerHTML = categories.map(cat => `
         <div class="category-card" onclick="showProducts('${cat.id}', '${cat.name}')">
             <img src="${cat.img}" class="category-img" onerror="this.src='img/no-photo.jpg'">
@@ -44,50 +48,31 @@ function initCategories() {
     `).join('');
 }
 
-function getFullImgPath(path) {
-    if (!path) return 'img/no-photo.jpg';
-
-    if (path.startsWith('http')) {
-        return path + (path.includes('?') ? '&' : '?') + 't=' + Date.now();
-    }
-    return SERVER_BASE + path + '?t=' + Date.now();
-}
-
 function showProducts(catId, catName) {
     window.scrollTo(0, 0);
     hideAllScreens();
     document.getElementById('products-screen').classList.remove('hidden');
     document.getElementById('category-title').innerText = catName;
     tg.BackButton.show();
-    tg.BackButton.onClick(showCategories);
+    tg.BackButton.onClick(initCategories);
 
     const list = document.getElementById('products-list');
-    if (!list) return;
-
     const items = productsData.filter(p => String(p.category_id) === String(catId));
-    if (items.length > 0) {
-        list.innerHTML = items.map(p => {
-            const safeName = p.name.replace(/"/g, '&quot;');
-            const imgUrl = getFullImgPath(p.img);
-            const art = p.art || '---';
-            return `
-            <div class="product-card">
-                <img src="${imgUrl}" class="product-img" onclick="showProductDetail(${p.id})" onerror="this.src='img/no-photo.jpg'">
-                <div class="product-info">
-                    <div class="product-title" onclick="showProductDetail(${p.id})">${p.name}</div>
-                    <div class="product-art">арт. ${art}</div>
-                    <div class="product-price">${p.price} руб.</div>
-                    <div class="qty-wrapper">
-                        <button class="qty-btn" onclick="changeQty(-1, ${p.id}, '${safeName}', ${p.price}, '${art}')">-</button>
-                        <span id="qty-${p.id}">${cart[p.id]?.qty || 0}</span>
-                        <button class="qty-btn" onclick="changeQty(1, ${p.id}, '${safeName}', ${p.price}, '${art}')">+</button>
-                    </div>
+
+    list.innerHTML = items.length > 0 ? items.map(p => `
+        <div class="product-card">
+            <img src="${getFullImgPath(p.img)}" class="product-img" onclick="showProductDetail(${p.id})" onerror="this.src='img/no-photo.jpg'">
+            <div class="product-info">
+                <div class="product-title" onclick="showProductDetail(${p.id})">${p.name}</div>
+                <div class="product-art">арт. ${p.art || '---'}</div>
+                <div class="product-price">${p.price} руб.</div>
+                <div class="qty-wrapper">
+                    <button class="qty-btn" onclick="updateQty(-1, ${p.id})">-</button>
+                    <span id="qty-${p.id}">${cart[p.id]?.qty || 0}</span>
+                    <button class="qty-btn" onclick="updateQty(1, ${p.id})">+</button>
                 </div>
-            </div>`;
-        }).join('');
-    } else {
-        list.innerHTML = '<p style="text-align:center; padding: 40px; color: #999; grid-column: 1/-1;">Пусто</p>';
-    }
+            </div>
+        </div>`).join('') : '<p style="grid-column:1/-1; text-align:center; padding:40px; color:#999;">Пусто 🎈</p>';
 }
 
 function showProductDetail(id) {
@@ -96,48 +81,40 @@ function showProductDetail(id) {
     hideAllScreens();
     const screen = document.getElementById('detail-screen');
     screen.classList.remove('hidden');
-    const art = p.art || '---';
-    const safeName = p.name.replace(/"/g, '&quot;');
+
     const imgUrl = getFullImgPath(p.img);
+
     screen.innerHTML = `
         <div class="detail-container">
-            <img src="${imgUrl}" class="detail-img" onerror="this.src='img/no-photo.jpg'">
-            <h2>${p.name}</h2>
-            <p class="detail-art">Артикул: ${art}</p>
-            <p class="detail-desc">${p.description || 'Описание отсутствует'}</p>
-            <div class="detail-price">${p.price} руб.</div>
-            <button class="main-btn-alt" onclick="changeQty(1, ${p.id}, '${safeName}', ${p.price}, '${art}'); showCategories();">В корзину и назад</button>
+            <img src="${imgUrl}" class="detail-img" onclick="openImageViewer('${imgUrl}')" onerror="this.src='img/no-photo.jpg'">
+            <div class="detail-info-block">
+                <div class="detail-art">Артикул: ${p.art || '---'}</div>
+                <h2 style="margin:10px 0;">${p.name}</h2>
+                <div class="detail-price" style="color:var(--primary-color); font-weight:800; font-size:24px; margin-bottom:15px;">${p.price} руб.</div>
+                <div class="detail-desc" style="text-align:center; margin-bottom:25px;">${p.description || 'Описание уточняйте у менеджера ✨'}</div>
+                <button class="main-btn-alt" onclick="updateQty(1, ${p.id}); initCategories();">🛒 В корзину и назад</button>
+                <button class="header-btn" onclick="showProducts('${p.category_id}', 'Назад')" style="margin-top:15px; width:100%; border:1px solid #ddd; background:none;">Назад к списку</button>
+            </div>
         </div>
     `;
     tg.BackButton.show();
     tg.BackButton.onClick(() => showProducts(p.category_id, "Назад"));
 }
 
-function showCategories() {
-    hideAllScreens();
-    document.getElementById('categories-screen').classList.remove('hidden');
-    tg.BackButton.hide();
-}
-
-function hideAllScreens() {
-    ['categories-screen', 'products-screen', 'order-screen', 'detail-screen'].forEach(s => {
-        const el = document.getElementById(s);
-        if (el) el.classList.add('hidden');
-    });
-}
-
-function changeQty(delta, id, name, price, art) {
-    if (!cart[id]) cart[id] = { name, price, art, qty: 0 };
+function updateQty(delta, id) {
+    const p = productsData.find(x => x.id === id);
+    if (!p) return;
+    if (!cart[id]) cart[id] = { ...p, qty: 0 };
     cart[id].qty += delta;
     if (cart[id].qty <= 0) delete cart[id];
+
     const label = document.getElementById(`qty-${id}`);
     if (label) label.innerText = cart[id]?.qty || 0;
     updateMainButton();
 }
 
 function updateMainButton() {
-    let total = 0;
-    for (let id in cart) total += cart[id].price * cart[id].qty;
+    const total = Object.values(cart).reduce((sum, item) => sum + (item.price * item.qty), 0);
     if (total > 0) {
         tg.MainButton.setText(`Оформить заказ: ${total} руб.`);
         tg.MainButton.show();
@@ -147,8 +124,7 @@ function updateMainButton() {
 }
 
 tg.MainButton.onClick(() => {
-    const orderScreen = document.getElementById('order-screen');
-    if (orderScreen && !orderScreen.classList.contains('hidden')) submitOrder();
+    if (!document.getElementById('order-screen').classList.contains('hidden')) submitOrder();
     else showOrder();
 });
 
@@ -156,88 +132,80 @@ function showOrder() {
     hideAllScreens();
     document.getElementById('order-screen').classList.remove('hidden');
     const container = document.getElementById('cart-items');
-    let total = 0;
-    if (container) {
-        container.innerHTML = Object.values(cart).map(item => {
-            total += item.price * item.qty;
-            return `<div class="cart-row">
-                <span>${item.name} [${item.art}] x${item.qty}</span>
-                <span>${item.price * item.qty} р.</span>
-            </div>`;
-        }).join('');
-    }
-    document.getElementById('total-amount').innerText = total;
+
+    container.innerHTML = Object.values(cart).map(item => `
+        <div class="cart-item">
+            <img src="${getFullImgPath(item.img)}" class="cart-thumb">
+            <div class="cart-info">
+                <div class="cart-name">${item.name}</div>
+                <div class="cart-price" style="color:var(--primary-color); font-weight:700;">${item.price} ₽</div>
+                <div class="cart-controls">
+                    <button class="qty-btn" onclick="updateQtyCart(-1, ${item.id})">-</button>
+                    <span style="font-weight:bold; min-width:20px; text-align:center;">${item.qty}</span>
+                    <button class="qty-btn" onclick="updateQtyCart(1, ${item.id})">+</button>
+                </div>
+            </div>
+            <button onclick="updateQtyCart(-999, ${item.id})" style="background:none; border:none; color:red; font-size:22px; padding:10px;">✕</button>
+        </div>`).join('') || '<p style="text-align:center; padding:40px;">Корзина пуста 🛍️</p>';
+
+    document.getElementById('total-amount').innerText = Object.values(cart).reduce((s, i) => s + (i.price * i.qty), 0);
     tg.MainButton.setText("✅ Отправить заказ");
+
+    const header = document.querySelector('#order-screen .main-header');
+    header.innerHTML = `<button class="header-btn" onclick="initCategories()">🏠 В магазин</button><h2 style="margin:0; font-size:16px;">Оформление</h2><div style="width:40px;"></div>`;
 }
 
-function toggleAddress(show) {
-    const addr = document.getElementById('user-address');
-    if (!addr) return;
-    if (show) {
-        addr.classList.remove('hidden');
-    } else {
-        addr.classList.add('hidden');
-        addr.value = '';
-    }
+function updateQtyCart(delta, id) {
+    updateQty(delta, id);
+    showOrder();
+}
+
+function openImageViewer(url) {
+    const viewer = document.getElementById('image-viewer');
+    document.getElementById('full-image').src = url;
+    viewer.classList.add('active');
+}
+
+function closeImageViewer() {
+    document.getElementById('image-viewer').classList.remove('active');
+}
+
+function hideAllScreens() {
+    ['categories-screen', 'products-screen', 'order-screen', 'detail-screen'].forEach(s => {
+        const el = document.getElementById(s);
+        if (el) el.classList.add('hidden');
+    });
 }
 
 async function submitOrder() {
-    const name = document.getElementById('user-name')?.value;
-    const surname = document.getElementById('user-surname')?.value;
-    const date = document.getElementById('order-date')?.value;
-    const wishes = document.getElementById('user-wishes')?.value;
-    const photoFile = document.getElementById('user-photo')?.files[0];
+    const name = document.getElementById('user-name').value;
+    const surname = document.getElementById('user-surname').value;
+    const date = document.getElementById('order-date').value;
     const deliveryType = document.querySelector('input[name="delivery-type"]:checked')?.value;
-    const address = document.getElementById('user-address')?.value;
+    const address = document.getElementById('user-address').value;
 
     if (!name || !surname || !date || (deliveryType === 'delivery' && !address)) {
-        tg.showAlert("Заполните имя, фамилию, дату и адрес (при доставке)!");
+        tg.showAlert("Заполните обязательные поля! 🎈");
         return;
     }
 
     tg.MainButton.showProgress();
-    let uploadedPhoto = null;
-
-    if (photoFile) {
-        try {
-            const formData = new FormData();
-            formData.append('file', photoFile);
-            const uploadRes = await fetch(`${SERVER_BASE}/api/admin/upload`, { method: 'POST', body: formData });
-            const uploadData = await uploadRes.json();
-            uploadedPhoto = uploadData.img_path;
-        } catch (e) {
-            console.error("Photo upload failed", e);
-        }
-    }
-
     const data = {
         user_id: tg.initDataUnsafe.user?.id,
         order_details: {
-            customer: {
-                name,
-                surname,
-                date,
-                wishes,
-                photo: uploadedPhoto,
-                delivery_type: deliveryType === 'delivery' ? 'Доставка' : 'Самовывоз',
-                address: address || 'Самовывоз'
-            },
+            customer: { name, surname, date, delivery_type: deliveryType, address: address || 'Самовывоз' },
             products: Object.values(cart),
             total_price: Object.values(cart).reduce((s, p) => s + (p.price * p.qty), 0)
         }
     };
 
     try {
-        const response = await fetch(SERVER_URL, {
-            method: 'POST',
-            headers: { ...h, 'Content-Type': 'application/json' },
-            body: JSON.stringify(data)
-        });
-        if (response.ok) tg.close();
-        else throw new Error("Ошибка сервера");
+        const res = await fetch(SERVER_URL, { method: 'POST', headers: { ...h, 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
+        if (res.ok) tg.close();
+        else throw new Error();
     } catch (e) {
         tg.MainButton.hideProgress();
-        tg.showAlert(e.message);
+        tg.showAlert("Ошибка отправки заказа");
     }
 }
 
