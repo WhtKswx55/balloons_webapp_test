@@ -32,7 +32,8 @@ async function loadProducts() {
 function getFullImgPath(path) {
     if (!path) return 'img/no-photo.jpg';
     if (path.startsWith('http')) return path;
-    return SERVER_BASE + (path.startsWith('/') ? '' : '/') + path;
+    const cleanPath = path.startsWith('/') ? path : '/' + path;
+    return SERVER_BASE + cleanPath;
 }
 
 function hideAllScreens() {
@@ -46,6 +47,8 @@ function initCategories() {
     hideAllScreens();
     document.getElementById('categories-screen').classList.remove('hidden');
     tg.BackButton.hide();
+    tg.MainButton.offClick(handleMainButtonClick);
+    updateMainButton();
     const list = document.getElementById('categories-list');
     list.innerHTML = categories.map(cat => `
         <div class="category-card" onclick="showProducts('${cat.id}', '${cat.name}')">
@@ -58,16 +61,24 @@ function initCategories() {
 function showProducts(catId, catName) {
     window.scrollTo(0, 0);
     hideAllScreens();
-    document.getElementById('products-screen').classList.remove('hidden');
-    document.getElementById('category-title').innerText = catName;
+    const screen = document.getElementById('products-screen');
+    screen.classList.remove('hidden');
     
+    screen.querySelector('.main-header').innerHTML = `
+        <div class="header-left">
+            <button class="header-btn" onclick="initCategories()">← Назад</button>
+        </div>
+        <h2 id="category-title">${catName}</h2>
+        <div style="width:80px;"></div>
+    `;
+
     tg.BackButton.show();
-    tg.BackButton.offClick(initCategories); 
+    tg.BackButton.offClick(initCategories);
     tg.BackButton.onClick(initCategories);
 
     const list = document.getElementById('products-list');
     const items = productsData.filter(p => String(p.category_id) === String(catId));
-    
+
     list.innerHTML = items.length > 0 ? items.map(p => `
         <div class="product-card">
             <img src="${getFullImgPath(p.img)}" class="product-img" onclick="showProductDetail(${p.id})" onerror="this.src='img/no-photo.jpg'">
@@ -90,10 +101,17 @@ function showProductDetail(id) {
     hideAllScreens();
     const screen = document.getElementById('detail-screen');
     screen.classList.remove('hidden');
-    
+
     const imgUrl = getFullImgPath(p.img);
 
     screen.innerHTML = `
+        <div class="main-header">
+            <div class="header-left">
+                <button class="header-btn" onclick="showProducts('${p.category_id}', 'Назад')">← Назад</button>
+            </div>
+            <h2>Детали</h2>
+            <div style="width:80px;"></div>
+        </div>
         <div class="detail-container">
             <img src="${imgUrl}" class="detail-img" onclick="openImageViewer('${imgUrl}')" onerror="this.src='img/no-photo.jpg'">
             <div class="detail-info-block">
@@ -105,9 +123,9 @@ function showProductDetail(id) {
             </div>
         </div>
     `;
-    
+
     tg.BackButton.show();
-    tg.BackButton.offClick(); 
+    tg.BackButton.offClick();
     tg.BackButton.onClick(() => showProducts(p.category_id, "Назад"));
 }
 
@@ -115,18 +133,11 @@ function updateQty(delta, id) {
     const p = productsData.find(x => x.id === id);
     if (!p) return;
     if (!cart[id]) {
-        cart[id] = { 
-            id: p.id, 
-            name: p.name, 
-            price: p.price, 
-            img: p.img, 
-            art: p.art, 
-            qty: 0 
-        };
+        cart[id] = { ...p, qty: 0 };
     }
     cart[id].qty += delta;
     if (cart[id].qty <= 0) delete cart[id];
-    
+
     const label = document.getElementById(`qty-${id}`);
     if (label) label.innerText = cart[id]?.qty || 0;
     updateMainButton();
@@ -155,8 +166,17 @@ function handleMainButtonClick() {
 function showOrder() {
     hideAllScreens();
     document.getElementById('order-screen').classList.remove('hidden');
-    const container = document.getElementById('cart-items');
     
+    const header = document.querySelector('#order-screen .main-header');
+    header.innerHTML = `
+        <div class="header-left">
+            <button class="header-btn" onclick="initCategories()">← В магазин</button>
+        </div>
+        <h2>Оформление</h2>
+        <div style="width:80px;"></div>
+    `;
+
+    const container = document.getElementById('cart-items');
     container.innerHTML = Object.values(cart).map(item => `
         <div class="cart-item">
             <img src="${getFullImgPath(item.img)}" class="cart-thumb" onerror="this.src='img/no-photo.jpg'">
@@ -174,7 +194,7 @@ function showOrder() {
 
     document.getElementById('total-amount').innerText = Object.values(cart).reduce((s, i) => s + (i.price * i.qty), 0);
     tg.MainButton.setText("✅ Отправить заказ");
-    
+
     tg.BackButton.show();
     tg.BackButton.offClick();
     tg.BackButton.onClick(initCategories);
@@ -222,10 +242,10 @@ async function submitOrder() {
     };
 
     try {
-        const res = await fetch(SERVER_URL, { 
-            method: 'POST', 
-            headers: { ...h, 'Content-Type': 'application/json' }, 
-            body: JSON.stringify(data) 
+        const res = await fetch(SERVER_URL, {
+            method: 'POST',
+            headers: { ...h, 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
         });
         if (res.ok) tg.close();
         else throw new Error("Сервер вернул ошибку");
