@@ -144,37 +144,37 @@
         }
 
         async function loadProducts() {
-        const list = document.getElementById('products-list');
-        try {
-            const res = await fetch(`${API_BASE}/api/products?v=${Date.now()}`, { 
-                headers: { "ngrok-skip-browser-warning": "69420" } 
-            });
-            const data = await res.json();
-            let html = '';
-            categories.forEach(cat => {
-                const items = data.filter(p => String(p.category_id) === String(cat.id));
-                if (items.length > 0) {
-                    html += `<div class="category-header">${cat.name}</div>`;
-                    items.forEach(p => {
-                        // Если в базе лежит просто имя файла, подставляем BASE_URL/content/
-                        let pic = p.img; 
-                        html += `
-                        <div class="item-row">
-                            <img src="${pic}" onerror="this.src='img/no-photo.jpg'">
-                            <div style="flex:1"><b>${p.name}</b><br><small>${p.price} ₽</small></div>
-                            <div class="actions">
-                                <button class="edit-btn" onclick="editItem(${p.id}, \`${p.name}\`, ${p.price}, '${p.art}', '${p.category_id}', '${p.img}', \`${p.description || ''}\`)">✎</button>
-                                <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
-                            </div>
-                        </div>`;
-                    });
-                }
-            });
-            list.innerHTML = html || "Товаров нет";
-        } catch (e) {
-            list.innerHTML = "Ошибка: сервер не отвечает";
+            const list = document.getElementById('products-list');
+            try {
+                const res = await fetch(`${API_BASE}/api/products?v=${Date.now()}`, { headers: h });
+                const data = await res.json();
+                let html = '';
+                categories.forEach(cat => {
+                    const items = data.filter(p => String(p.category_id) === String(cat.id));
+                    if (items.length > 0) {
+                        html += `<div class="category-header">${cat.name}</div>`;
+                        items.forEach(p => {
+                            // Формируем путь: если полный url - ок, если относительный - добавляем API_BASE
+                            let pic = p.img;
+                            if (!pic.startsWith('http')) pic = `${API_BASE}/${pic}`;
+
+                            html += `
+                            <div class="item-row">
+                                <img src="${pic}" onerror="this.src='img/no-photo.jpg'">
+                                <div style="flex:1"><b>${p.name}</b><br><small>${p.price} ₽</small></div>
+                                <div class="actions">
+                                    <button class="edit-btn" onclick="editItem(${p.id}, \`${p.name}\`, ${p.price}, '${p.art}', '${p.category_id}', '${p.img}', \`${p.description || ''}\`)">✎</button>
+                                    <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
+                                </div>
+                            </div>`;
+                        });
+                    }
+                });
+                list.innerHTML = html || "Товаров нет";
+            } catch (e) {
+                list.innerHTML = "Ошибка: сервер не отвечает";
+            }
         }
-    }
 
         function editItem(id, name, price, art, cat, img, desc) {
             document.getElementById('p-id').value = id;
@@ -210,7 +210,7 @@
                 list.innerHTML = data.map(o => `
                     <div class="order-card">
                         <b>Заказ #${o.id}</b>
-                        <p>Сумма: ${o.total_price} ₽</p>
+                        <p>Сумма: ${o.total_price} ₽ <br> Статус: ${o.status}</p>
                         <select onchange="updateStatus(${o.id}, this.value)">
                             <option value="new" ${o.status==='new'?'selected':''}>Новый</option>
                             <option value="done" ${o.status==='done'?'selected':''}>Готов</option>
@@ -229,10 +229,20 @@
             });
         }
 
-        async function deleteItem(id) { if(confirm("Удалить товар?")) { await fetch(`${API_BASE}/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
-        async function deleteOrder(id) { if(confirm("Удалить заказ?")) { await fetch(`${API_BASE}/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
+        async function deleteItem(id) {
+            if(confirm("Удалить товар?")) {
+                await fetch(`${API_BASE}/api/admin/product/${id}`, {method:'DELETE', headers:h});
+                loadProducts();
+            }
+        }
 
-        // Запуск при загрузке
+        async function deleteOrder(id) {
+            if(confirm("Удалить заказ?")) {
+                await fetch(`${API_BASE}/api/admin/order/${id}`, {method:'DELETE', headers:h});
+                loadOrders();
+            }
+        }
+
         loadProducts();
     </script>
 </body>
