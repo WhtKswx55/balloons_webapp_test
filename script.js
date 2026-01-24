@@ -10,7 +10,7 @@ let productsData = [];
 const categories = [
     { id: 'feb14', name: '14 февраля', img: 'img/14feb.jpg' },
     { id: '23and8', name: '8 марта и 23 февраля', img: 'img/23and8.jpg'},
-    { id; 'school', name: 'Школьные шарики', img: 'img/school.jgp'},
+    { id; 'school', name: 'Школьные шарики', img: 'img/school.jpg'},
     { id: 'gender', name: 'Гендерные шарики', img: 'img/gender.jpg'},
     { id: 'bday', name: 'День рождения', img: 'img/bday.jpg' },
     { id: 'vipiska', name: 'На выписку', img: 'img/vipiska.jpg'},
@@ -189,3 +189,4 @@ async function submitOrder() {
 
 // Запускаем только когда HTML полностью готов
 document.addEventListener('DOMContentLoaded', loadProducts);
+
