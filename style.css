@@ -95,6 +95,34 @@ body {
     margin-right: 8px;
     margin-bottom: 1px;
 }
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    padding: 8px 14px;
+    border-radius: 999px;
+    border: none;
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 500;
+
+    background: linear-gradient(135deg,
+        rgba(0,0,0,0.06),
+        rgba(0,0,0,0.18)
+    );
+    color: var(--tg-theme-button-text-color);
+    box-shadow: 0 0 0 1px rgba(0,0,0,0.15);
+
+    background-color: var(--tg-theme-secondary-bg-color);
+}
+
+.back-btn::before {
+    content: "←";
+    font-size: 16px;
+    line-height: 1;
+}
 
 .main-header h1, .main-header h2 {
     margin: 0;
