@@ -87,54 +87,81 @@
         }
 
         async function saveProduct() {
-            const btn = document.getElementById('save-btn');
-            const fileInput = document.getElementById('p-file');
-            const pId = document.getElementById('p-id').value;
-            
-            btn.disabled = true;
-            btn.innerText = "Загрузка...";
-
+        const btn = document.getElementById('save-btn');
+        const fileInput = document.getElementById('p-file');
+        const pId = document.getElementById('p-id').value;
+    
+        const name = document.getElementById('p-name').value.trim();
+        const price = parseFloat(document.getElementById('p-price').value);
+        const art = document.getElementById('p-art').value.trim();
+        const cat = document.getElementById('p-cat').value;
+        const desc = document.getElementById('p-desc').value.trim();
+    
+        if (!name || isNaN(price)) {
+            alert("Заполни название и цену (числом)!");
+            return;
+        }
+    
+        btn.disabled = true;
+        btn.innerText = "Загрузка...";
+    
+        try {
             let imgPath = currentImg;
-
-            try {
-                if (fileInput.files[0]) {
-                    const formData = new FormData();
-                    formData.append('file', fileInput.files[0]);
-                    const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { method: 'POST', headers: h, body: formData });
+    
+            if (fileInput.files && fileInput.files[0]) {
+                const formData = new FormData();
+                formData.append('file', fileInput.files[0]);
+                
+                const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { 
+                    method: 'POST', 
+                    headers: h, 
+                    body: formData 
+                });
+                
+                if (uploadRes.ok) {
                     const uploadData = await uploadRes.json();
                     imgPath = uploadData.img_path;
-                }
-
-                const data = {
-                    id: pId ? parseInt(pId) : null,
-                    name: document.getElementById('p-name').value,
-                    price: parseFloat(document.getElementById('p-price').value),
-                    art: document.getElementById('p-art').value,
-                    category: document.getElementById('p-cat').value,
-                    description: document.getElementById('p-desc').value,
-                    img: imgPath
-                };
-
-                const url = pId ? `${API_BASE}/api/admin/edit_product` : `${API_BASE}/api/admin/add_product`;
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: { ...h, "Content-Type": "application/json" },
-                    body: JSON.stringify(data)
-                });
-
-                if (res.ok) {
-                    resetForm();
-                    await loadProducts();
                 } else {
-                    alert("Ошибка при сохранении");
+                    console.error("Ошибка загрузки картинки");
                 }
-            } catch (e) {
-                alert("Ошибка соединения");
-            } finally {
-                btn.disabled = false;
-                btn.innerText = "Сохранить";
             }
+    
+            const data = {
+                id: pId ? parseInt(pId) : null,
+                name: name,
+                price: price,
+                art: art,
+                category: cat,
+                description: desc,
+                img: imgPath
+            };
+    
+            const url = pId ? `${API_BASE}/api/admin/edit_product` : `${API_BASE}/api/admin/add_product`;
+            
+            const res = await fetch(url, {
+                method: 'POST',
+                headers: { 
+                    ...h, 
+                    "Content-Type": "application/json" 
+                },
+                body: JSON.stringify(data)
+            });
+    
+            if (res.ok) {
+                resetForm();
+                await loadProducts();
+            } else {
+                const errorText = await res.text();
+                alert("Ошибка сервера: " + errorText);
+            }
+        } catch (e) {
+            console.error("Критическая ошибка JS:", e);
+            alert("Ошибка в браузере. Проверь консоль (F12)");
+        } finally {
+            btn.disabled = false;
+            btn.innerText = "Сохранить";
         }
+    }
 
         async function loadProducts() {
             const list = document.getElementById('products-list');
