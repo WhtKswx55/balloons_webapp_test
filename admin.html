@@ -1,253 +1,176 @@
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Админ-панель</title>
-    <style>
-        body { font-family: -apple-system, sans-serif; padding: 15px; background: #f0f2f5; color: #333; margin: 0; }
-        .tabs { display: flex; gap: 10px; margin-bottom: 15px; position: sticky; top: 0; background: #f0f2f5; padding: 10px 0; z-index: 10; }
-        .tab-btn { flex: 1; padding: 12px; border: none; border-radius: 8px; background: #ddd; cursor: pointer; font-weight: bold; }
-        .tab-btn.active { background: #007bff; color: white; }
-        .box { background: white; padding: 15px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); margin-bottom: 20px; }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; }
-        input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
-        button.main-btn { width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
-        button:disabled { opacity: 0.5; cursor: not-allowed; }
-        .category-header { background: #e9ecef; padding: 8px 12px; border-radius: 6px; font-weight: bold; margin: 15px 0 10px 0; font-size: 14px; color: #495057; }
-        .item-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; }
-        .item-row img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
-        .actions { display: flex; gap: 5px; }
-        .del-btn { background: #ff4d4d; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
-        .edit-btn { background: #ffc107; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
-        .order-card { padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; background: #fff; position: relative; }
-    </style>
-</head>
-<body>
+const API_BASE = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev';
+const h = { "ngrok-skip-browser-warning": "69420" };
+let currentImg = "img/no-photo.jpg";
 
-    <div class="tabs">
-        <button class="tab-btn active" id="btn-products" onclick="switchTab('products')">Товары</button>
-        <button class="tab-btn" id="btn-orders" onclick="switchTab('orders')">Заказы</button>
-    </div>
+const categories = [
+    { id: 'feb14', name: '14 февраля' },
+    { id: '23and8', name: '8 марта и 23 февраля' },
+    { id: 'school', name: 'Школьные шарики' },
+    { id: 'gender', name: 'Гендерные шарики' },
+    { id: 'bday', name: 'День рождения' },
+    { id: 'vipiska', name: 'На выписку' },
+    { id: 'other', name: 'Другое' }
+];
 
-    <div id="products-tab" class="tab-content active">
-        <div class="box">
-            <h3 id="form-title" style="margin-top:0">Добавить товар</h3>
-            <input type="hidden" id="p-id">
-            <input type="text" id="p-name" placeholder="Название">
-            <input type="number" id="p-price" placeholder="Цена">
-            <input type="text" id="p-art" placeholder="Артикул">
-            <select id="p-cat">
-                <option value="feb14">14 февраля</option>
-                <option value="23and8">8 марта и 23 февраля</option>
-                <option value="school">Школьные шарики</option>
-                <option value="gender">Гендерные шарики</option>
-                <option value="bday">День рождения</option>
-                <option value="vipiska">На выписку</option>
-                <option value="other">Другое</option>
-            </select>
-            <textarea id="p-desc" placeholder="Описание товара"></textarea>
-            <input type="file" id="p-file" accept="image/*">
-            <button class="main-btn" id="save-btn" onclick="saveProduct()">Сохранить</button>
-            <button id="cancel-btn" onclick="resetForm()" style="display:none; width:100%; margin-top:10px; background:none; border:none; color:#007bff; cursor: pointer;">Отмена</button>
-        </div>
-        <div class="box">
-            <div id="products-list"></div>
-        </div>
-    </div>
+function switchTab(tab) {
+    document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tab + '-tab').classList.add('active');
+    document.getElementById('btn-' + tab).classList.add('active');
+    tab === 'products' ? loadProducts() : loadOrders();
+}
 
-    <div id="orders-tab" class="tab-content">
-        <div class="box">
-            <div id="orders-list"></div>
-        </div>
-    </div>
+async function saveProduct() {
+    const btn = document.getElementById('save-btn');
+    const fileInput = document.getElementById('p-file');
+    const pId = document.getElementById('p-id').value;
 
-    <script>
-        const API_BASE = 'https://lynell-undelaying-exorbitantly.ngrok-free.dev';
-        const h = { "ngrok-skip-browser-warning": "69420" };
-        let currentImg = "img/no-photo.jpg";
-
-        const categories = [
-            { id: 'feb14', name: '14 февраля' },
-            { id: '23and8', name: '8 марта и 23 февраля' },
-            { id: 'school', name: 'Школьные шарики' },
-            { id: 'gender', name: 'Гендерные шарики' },
-            { id: 'bday', name: 'День рождения' },
-            { id: 'vipiska', name: 'На выписку' },
-            { id: 'other', name: 'Другое' }
-        ];
-
-        function switchTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-            document.getElementById(tab + '-tab').classList.add('active');
-            document.getElementById('btn-' + tab).classList.add('active');
-            tab === 'products' ? loadProducts() : loadOrders();
-        }
-
-        async function saveProduct() {
-        const btn = document.getElementById('save-btn');
-        const fileInput = document.getElementById('p-file');
-        const pId = document.getElementById('p-id').value;
+    const name = document.getElementById('p-name').value.trim();
+    const price = parseFloat(document.getElementById('p-price').value);
     
-        const name = document.getElementById('p-name').value.trim();
-        const price = parseFloat(document.getElementById('p-price').value);
-        const art = document.getElementById('p-art').value.trim();
-        const cat = document.getElementById('p-cat').value;
-        const desc = document.getElementById('p-desc').value.trim();
-    
-        if (!name || isNaN(price)) {
-            alert("Заполни название и цену (числом)!");
-            return;
-        }
-    
-        btn.disabled = true;
-        btn.innerText = "Загрузка...";
-    
-        try {
-            let imgPath = currentImg;
-    
-            if (fileInput.files && fileInput.files[0]) {
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                
-                const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { 
-                    method: 'POST', 
-                    headers: h, 
-                    body: formData 
-                });
-                
-                if (uploadRes.ok) {
-                    const uploadData = await uploadRes.json();
-                    imgPath = uploadData.img_path;
-                } else {
-                    console.error("Ошибка загрузки картинки");
-                }
-            }
-    
-            const data = {
-                id: pId ? parseInt(pId) : null,
-                name: name,
-                price: price,
-                art: art,
-                category: cat,
-                description: desc,
-                img: imgPath
-            };
-    
-            const url = pId ? `${API_BASE}/api/admin/edit_product` : `${API_BASE}/api/admin/add_product`;
-            
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { 
-                    ...h, 
-                    "Content-Type": "application/json" 
-                },
-                body: JSON.stringify(data)
-            });
-    
-            if (res.ok) {
-                resetForm();
-                await loadProducts();
-            } else {
-                const errorText = await res.text();
-                alert("Ошибка сервера: " + errorText);
-            }
-        } catch (e) {
-            console.error("Критическая ошибка JS:", e);
-            alert("Ошибка в браузере. Проверь консоль (F12)");
-        } finally {
-            btn.disabled = false;
-            btn.innerText = "Сохранить";
-        }
+    if (!name || isNaN(price)) {
+        alert("Укажите название и цену!");
+        return;
     }
 
-        async function loadProducts() {
-            const list = document.getElementById('products-list');
-            const res = await fetch(`${API_BASE}/api/products?v=${Date.now()}`, { headers: h });
-            const data = await res.json();
+    btn.disabled = true;
+    btn.innerText = "Загрузка...";
 
-            let html = '';
-            categories.forEach(cat => {
-                const catItems = data.filter(p => String(p.category_id) === String(cat.id));
-                if (catItems.length > 0) {
-                    html += `<div class="category-header">${cat.name}</div>`;
-                    html += catItems.map(p => `
-                        <div class="item-row">
-                            <img src="${p.img.startsWith('http') ? p.img : API_BASE + '/' + p.img}" onerror="this.src='/img/no-photo.jpg'">
-                            <div style="flex:1"><b>${p.name}</b><br><small>${p.price}₽ | Арт: ${p.art}</small></div>
-                            <div class="actions">
-                                <button class="edit-btn" onclick="editItem(${p.id}, \`${p.name.replace(/`/g, '')}\`, ${p.price}, '${p.art}', '${p.category_id}', '${p.img}', \`${(p.description || '').replace(/`/g, '')}\`)">✎</button>
-                                <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
-                            </div>
+    try {
+        let imgPath = currentImg;
+
+        if (fileInput.files && fileInput.files[0]) {
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { 
+                method: 'POST', 
+                headers: h, 
+                body: formData 
+            });
+            if (uploadRes.ok) {
+                const uploadData = await uploadRes.json();
+                imgPath = uploadData.img_path;
+            }
+        }
+
+        const data = {
+            id: pId ? parseInt(pId) : null,
+            name: name,
+            price: price,
+            art: document.getElementById('p-art').value.trim(),
+            category: document.getElementById('p-cat').value,
+            description: document.getElementById('p-desc').value.trim(),
+            img: imgPath
+        };
+
+        const url = pId ? `${API_BASE}/api/admin/edit_product` : `${API_BASE}/api/admin/add_product`;
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { ...h, "Content-Type": "application/json" },
+            body: JSON.stringify(data)
+        });
+
+        if (res.ok) {
+            resetForm();
+            await loadProducts();
+            alert("Сохранено!");
+        } else {
+            alert("Ошибка сервера при сохранении");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Критическая ошибка: " + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerText = "Сохранить";
+    }
+}
+
+async function loadProducts() {
+    const list = document.getElementById('products-list');
+    if (!list) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/api/products?v=${Date.now()}`, { headers: h });
+        const data = await res.json();
+
+        let html = '';
+        categories.forEach(cat => {
+            const catItems = data.filter(p => String(p.category_id) === String(cat.id));
+            if (catItems.length > 0) {
+                html += `<div class="category-header">${cat.name}</div>`;
+                html += catItems.map(p => {
+                    const pic = p.img.startsWith('http') ? p.img : `${API_BASE}/${p.img}`;
+                    return `
+                    <div class="item-row">
+                        <img src="${pic}" onerror="this.src='img/no-photo.jpg'">
+                        <div style="flex:1"><b>${p.name}</b><br><small>${p.price}₽</small></div>
+                        <div class="actions">
+                            <button class="edit-btn" onclick="editItem(${p.id}, \`${p.name.replace(/`/g, '')}\`, ${p.price}, '${p.art}', '${p.category_id}', '${p.img}', \`${(p.description || '').replace(/`/g, '')}\`)">✎</button>
+                            <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
                         </div>
-                    `).join('');
-                }
-            });
-            list.innerHTML = html || "Товаров нет";
-        }
+                    </div>`;
+                }).join('');
+            }
+        });
+        list.innerHTML = html || "Товаров нет";
+    } catch (e) { console.error("Ошибка загрузки товаров:", e); }
+}
 
-        function editItem(id, name, price, art, cat, img, desc) {
-            document.getElementById('p-id').value = id;
-            document.getElementById('p-name').value = name;
-            document.getElementById('p-price').value = price;
-            document.getElementById('p-art').value = art;
-            document.getElementById('p-cat').value = cat;
-            document.getElementById('p-desc').value = desc;
-            currentImg = img;
-            document.getElementById('form-title').innerText = "Редактировать";
-            document.getElementById('cancel-btn').style.display = "block";
-            window.scrollTo(0,0);
-        }
+function editItem(id, name, price, art, cat, img, desc) {
+    document.getElementById('p-id').value = id;
+    document.getElementById('p-name').value = name;
+    document.getElementById('p-price').value = price;
+    document.getElementById('p-art').value = art;
+    document.getElementById('p-cat').value = cat;
+    document.getElementById('p-desc').value = desc;
+    currentImg = img;
+    document.getElementById('form-title').innerText = "Редактировать";
+    document.getElementById('cancel-btn').style.display = "block";
+    window.scrollTo(0,0);
+}
 
-        function resetForm() {
-            document.getElementById('p-id').value = "";
-            document.getElementById('p-name').value = "";
-            document.getElementById('p-price').value = "";
-            document.getElementById('p-art').value = "";
-            document.getElementById('p-cat').value = "feb14";
-            document.getElementById('p-desc').value = "";
-            document.getElementById('p-file').value = "";
-            document.getElementById('form-title').innerText = "Добавить товар";
-            document.getElementById('cancel-btn').style.display = "none";
-            currentImg = "img/no-photo.jpg";
-        }
+function resetForm() {
+    document.getElementById('p-id').value = "";
+    document.getElementById('p-name').value = "";
+    document.getElementById('p-price').value = "";
+    document.getElementById('p-art').value = "";
+    document.getElementById('p-cat').value = "feb14";
+    document.getElementById('p-desc').value = "";
+    document.getElementById('p-file').value = "";
+    document.getElementById('form-title').innerText = "Добавить товар";
+    document.getElementById('cancel-btn').style.display = "none";
+    currentImg = "img/no-photo.jpg";
+}
 
-        async function loadOrders() {
-            const list = document.getElementById('orders-list');
-            const res = await fetch(`${API_BASE}/api/admin/orders`, { headers: h });
-            const data = await res.json();
-            list.innerHTML = data.map(o => `
-                <div class="order-card" style="${o.status === 'cancel' ? 'background:#fceaea' : ''}">
-                    <div class="order-header">
-                        <b>Заказ #${o.id}</b>
-                        <select onchange="updateStatus(${o.id}, this.value)">
-                            <option value="new" ${o.status==='new'?'selected':''}>Новый</option>
-                            <option value="done" ${o.status==='done'?'selected':''}>Выполнен</option>
-                            <option value="cancel" ${o.status==='cancel'?'selected':''}>Отменен</option>
-                        </select>
-                    </div>
-                    <div>Сумма: ${o.total_price} ₽</div>
-                    <small style="display:block; white-space:pre-wrap;">${o.details}</small>
-                    <button class="del-btn" style="margin-top:10px" onclick="deleteOrder(${o.id})">Удалить заказ</button>
-                </div>
-            `).join('');
-        }
+async function loadOrders() {
+    const list = document.getElementById('orders-list');
+    try {
+        const res = await fetch(`${API_BASE}/api/admin/orders`, { headers: h });
+        const data = await res.json();
+        list.innerHTML = data.map(o => `
+            <div class="order-card">
+                <b>Заказ #${o.id}</b>
+                <select onchange="updateStatus(${o.id}, this.value)">
+                    <option value="new" ${o.status==='new'?'selected':''}>Новый</option>
+                    <option value="done" ${o.status==='done'?'selected':''}>Готов</option>
+                    <option value="cancel" ${o.status==='cancel'?'selected':''}>Отмена</option>
+                </select>
+                <div>${o.total_price} ₽</div>
+                <button class="del-btn" onclick="deleteOrder(${o.id})">Удалить</button>
+            </div>`).join('');
+    } catch (e) { console.error(e); }
+}
 
-        async function updateStatus(id, status) {
-            await fetch(`${API_BASE}/api/admin/order/update`, {
-                method: 'POST',
-                headers: { ...h, 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, status })
-            });
-            loadOrders();
-        }
+async function updateStatus(id, status) {
+    await fetch(`${API_BASE}/api/admin/order/update`, {
+        method: 'POST',
+        headers: { ...h, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status })
+    });
+}
 
-        async function deleteItem(id) { if(confirm("Удалить?")) { await fetch(`${API_BASE}/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
-        async function deleteOrder(id) { if(confirm("Удалить заказ?")) { await fetch(`${API_BASE}/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
+async function deleteItem(id) { if(confirm("Удалить?")) { await fetch(`${API_BASE}/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
+async function deleteOrder(id) { if(confirm("Удалить заказ?")) { await fetch(`${API_BASE}/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
 
-        loadProducts();
-    </script>
-</body>
-</html>
+loadProducts();
