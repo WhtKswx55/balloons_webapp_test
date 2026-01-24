@@ -70,6 +70,16 @@
         const h = { "ngrok-skip-browser-warning": "69420" };
         let currentImg = "img/no-photo.jpg";
 
+        // Функция инициализации
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Админка запущена");
+            loadProducts();
+            
+            // Назначаем обработчики кнопок
+            document.getElementById('save-btn').onclick = saveProduct;
+            document.getElementById('cancel-btn').onclick = resetForm;
+        });
+
         function switchTab(tab) {
             document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
             document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
@@ -86,16 +96,28 @@
             const pId = document.getElementById('p-id').value;
             let imgPath = currentImg;
 
+            // 1. Загрузка фото (если есть)
             if (fileInput.files[0]) {
                 const formData = new FormData();
                 formData.append('file', fileInput.files[0]);
                 try {
-                    const uploadRes = await fetch('/api/admin/upload', { method: 'POST', headers: h, body: formData });
+                    document.getElementById('save-btn').innerText = "Загрузка фото...";
+                    const uploadRes = await fetch('/api/admin/upload', { 
+                        method: 'POST', 
+                        headers: h, // FormData сама ставит Content-Type, не указываем его вручную!
+                        body: formData 
+                    });
+                    if(!uploadRes.ok) throw new Error("Ошибка аплоада");
                     const uploadData = await uploadRes.json();
                     imgPath = uploadData.img_path;
-                } catch(e) { alert("Ошибка загрузки фото"); return; }
+                } catch(e) { 
+                    alert("Ошибка загрузки фото: " + e.message); 
+                    document.getElementById('save-btn').innerText = "Сохранить товар";
+                    return; 
+                }
             }
 
+            // 2. Сохранение товара
             const productData = {
                 id: pId || null,
                 name: document.getElementById('p-name').value,
@@ -106,15 +128,22 @@
             };
 
             const url = pId ? `/api/admin/edit_product` : `/api/admin/add_product`;
-            const res = await fetch(url, {
-                method: 'POST',
-                headers: { ...h, "Content-Type": "application/json" },
-                body: JSON.stringify(productData)
-            });
+            
+            try {
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { ...h, "Content-Type": "application/json" },
+                    body: JSON.stringify(productData)
+                });
 
-            if (res.ok) {
-                resetForm();
-                loadProducts();
+                if (res.ok) {
+                    resetForm();
+                    loadProducts();
+                } else {
+                    alert("Ошибка сохранения: " + res.status);
+                }
+            } catch (e) {
+                alert("Ошибка сети: " + e.message);
             }
         }
 
@@ -123,12 +152,14 @@
             document.getElementById('p-name').value = name;
             document.getElementById('p-price').value = price;
             document.getElementById('p-art').value = art;
-            document.getElementById('p-cat').value = cat;
+            document.getElementById('p-cat').value = cat || 'other'; // Защита от null
             currentImg = img;
 
-            document.getElementById('form-title').innerText = "Редактировать товар";
+            document.getElementById('form-title').innerText = "Редактировать товар (ID: " + id + ")";
             document.getElementById('save-btn').innerText = "Обновить данные";
             document.getElementById('cancel-btn').style.display = "block";
+            
+            // Скролл вверх к форме
             window.scrollTo({top: 0, behavior: 'smooth'});
         }
 
@@ -138,6 +169,8 @@
             document.getElementById('p-price').value = "";
             document.getElementById('p-art').value = "";
             document.getElementById('p-file').value = "";
+            document.getElementById('p-cat').selectedIndex = 0;
+            
             document.getElementById('form-title').innerText = "Добавить товар";
             document.getElementById('save-btn').innerText = "Сохранить товар";
             document.getElementById('cancel-btn').style.display = "none";
@@ -145,45 +178,73 @@
         }
 
         async function loadProducts() {
+            const list = document.getElementById('products-list');
+            list.innerHTML = "⏳ Загрузка...";
+            
             try {
-                const res = await fetch('/api/products', { headers: h });
+                // Добавляем timestamp чтобы избежать кэширования
+                const res = await fetch(`/api/products?v=${Date.now()}`, { headers: h });
+                if (!res.ok) throw new Error("Status " + res.status);
+                
                 const data = await res.json();
-                document.getElementById('products-list').innerHTML = data.map(p => `
+                
+                if (data.length === 0) {
+                    list.innerHTML = "Товаров пока нет.";
+                    return;
+                }
+
+                list.innerHTML = data.map(p => {
+                    // Экранирование кавычек для JS
+                    const safeName = p.name.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+                    const safeImg = p.img || 'img/no-photo.jpg';
+                    
+                    return `
                     <div class="item-row">
-                        <img src="${p.img.startsWith('http') ? p.img : '/' + p.img}" onerror="this.src='/img/no-photo.jpg'">
+                        <img src="${safeImg.startsWith('http') ? safeImg : '/' + safeImg}" onerror="this.src='/img/no-photo.jpg'">
                         <div class="item-info">
                             <b>${p.name}</b>
-                            <small>${p.price} ₽ | ${p.art || 'нет арт.'}</small>
+                            <small>${p.price} ₽ | Арт: ${p.art || '-'} | Кат: ${p.category_id}</small>
                         </div>
                         <div class="actions">
-                            <button class="edit-btn" onclick="editItem(${p.id}, '${p.name.replace(/'/g, "\\'")}', ${p.price}, '${p.art}', '${p.category_id}', '${p.img}')">✎</button>
+                            <button class="edit-btn" onclick="editItem(${p.id}, '${safeName}', ${p.price}, '${p.art || ''}', '${p.category_id}', '${safeImg}')">✎</button>
                             <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
                         </div>
                     </div>
-                `).join('') || "Товаров нет";
-            } catch(e) { document.getElementById('products-list').innerText = "Ошибка загрузки"; }
+                `}).join('');
+            } catch(e) { 
+                list.innerHTML = `<span style="color:red">Ошибка загрузки: ${e.message}</span>`;
+                console.error(e);
+            }
         }
 
         async function deleteItem(id) {
             if (!confirm("Удалить этот товар?")) return;
-            await fetch(`/api/admin/product/${id}`, { method: 'DELETE', headers: h });
-            loadProducts();
+            try {
+                await fetch(`/api/admin/product/${id}`, { method: 'DELETE', headers: h });
+                loadProducts();
+            } catch (e) {
+                alert("Не удалось удалить: " + e.message);
+            }
         }
 
         async function loadOrders() {
+            const list = document.getElementById('orders-list');
+            list.innerHTML = "⏳ Загрузка...";
             try {
                 const res = await fetch('/api/admin/orders', { headers: h });
+                if (!res.ok) throw new Error("Status " + res.status);
                 const data = await res.json();
-                document.getElementById('orders-list').innerHTML = data.map(o => `
+                
+                list.innerHTML = data.map(o => `
                     <div class="order-card">
                         <b>Заказ №${o.id}</b> — ${o.total_price} ₽<br>
-                        <small style="color: #666;">${o.details.replace(/\n/g, '<br>')}</small>
+                        <small style="color: #666;">${o.details ? o.details.replace(/\n/g, '<br>') : 'Нет деталей'}</small>
                     </div>
                 `).join('') || "Заказов пока нет";
-            } catch(e) { document.getElementById('orders-list').innerText = "Ошибка загрузки"; }
+            } catch(e) { 
+                list.innerHTML = `<span style="color:red">Ошибка: ${e.message}</span>`;
+            }
         }
-
-        loadProducts();
     </script>
 </body>
 </html>
