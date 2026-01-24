@@ -2,7 +2,7 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Balloons Shop</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -26,8 +26,8 @@
 
         <section id="detail-screen" class="hidden">
             <header class="section-header">
-                <button class="back-btn" id="detail-back-btn">← Назад</button>
-                <h2>Описание товара</h2>
+                <button class="back-btn" id="detail-back-btn" onclick="goBackFromDetail()">← Назад</button>
+                <h2>Описание</h2>
             </header>
             <div id="product-detail-content"></div>
         </section>
@@ -38,13 +38,15 @@
                 <h2>Ваш заказ</h2>
             </header>
             <div class="order-content">
-                <div id="cart-items"></div>
+                <div id="cart-items" class="cart-items-container"></div>
                 <div class="total-row">
-                    Итого: <span id="total-amount">0</span> руб.
+                    <span>Итого:</span>
+                    <span id="total-amount">0</span> руб.
                 </div>
                 <div class="form-container">
                     <input type="text" id="user-name" placeholder="Имя" required>
                     <input type="text" id="user-surname" placeholder="Фамилия" required>
+                    <label class="field-label" style="font-size:13px; color:#666; margin-bottom:-5px; display:block;">Дата мероприятия:</label>
                     <input type="date" id="order-date" required>
 
                     <div class="delivery-selector">
@@ -57,7 +59,7 @@
 
                     <input type="text" id="user-address" placeholder="Адрес доставки (улица, дом, кв)" class="hidden">
 
-                    <textarea id="user-wishes" placeholder="Здесь вы можете оставить свои пожелания"></textarea>
+                    <textarea id="user-wishes" placeholder="Ваши пожелания к заказу"></textarea>
 
                     <div class="file-input-wrapper">
                         <label for="user-photo">Прикрепить фото-пример:</label>
@@ -77,8 +79,8 @@
     </div>
 
     <div id="image-viewer">
+        <button id="close-btn" onclick="closeImageViewer()">✕</button>
         <img id="full-image" src="" alt="Full view">
-        <button id="close-btn" onclick="closeImageViewer()">Закрыть</button>
     </div>
 
     <script src="script.js"></script>
