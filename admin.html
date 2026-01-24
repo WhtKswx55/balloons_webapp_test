@@ -144,34 +144,37 @@
         }
 
         async function loadProducts() {
-            const list = document.getElementById('products-list');
-            try {
-                const res = await fetch(`${API_BASE}/api/products?v=${Date.now()}`, { headers: h });
-                const data = await res.json();
-                let html = '';
-                categories.forEach(cat => {
-                    const items = data.filter(p => String(p.category_id) === String(cat.id));
-                    if (items.length > 0) {
-                        html += `<div class="category-header">${cat.name}</div>`;
-                        items.forEach(p => {
-                            const pic = p.img.startsWith('http') ? p.img : `${API_BASE}/${p.img}`;
-                            html += `
-                                <div class="item-row">
-                                    <img src="${pic}" onerror="this.src='img/no-photo.jpg'">
-                                    <div style="flex:1"><b>${p.name}</b><br><small>${p.price} ₽</small></div>
-                                    <div class="actions">
-                                        <button class="edit-btn" onclick="editItem(${p.id}, \`${p.name.replace(/`/g, '')}\`, ${p.price}, '${p.art}', '${p.category_id}', '${p.img}', \`${(p.description || '').replace(/`/g, '')}\`)">✎</button>
-                                        <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
-                                    </div>
-                                </div>`;
-                        });
-                    }
-                });
-                list.innerHTML = html || "Товаров пока нет";
-            } catch (e) {
-                list.innerHTML = "Ошибка загрузки товаров";
-            }
+        const list = document.getElementById('products-list');
+        try {
+            const res = await fetch(`${API_BASE}/api/products?v=${Date.now()}`, { 
+                headers: { "ngrok-skip-browser-warning": "69420" } 
+            });
+            const data = await res.json();
+            let html = '';
+            categories.forEach(cat => {
+                const items = data.filter(p => String(p.category_id) === String(cat.id));
+                if (items.length > 0) {
+                    html += `<div class="category-header">${cat.name}</div>`;
+                    items.forEach(p => {
+                        // Если в базе лежит просто имя файла, подставляем BASE_URL/content/
+                        let pic = p.img; 
+                        html += `
+                        <div class="item-row">
+                            <img src="${pic}" onerror="this.src='img/no-photo.jpg'">
+                            <div style="flex:1"><b>${p.name}</b><br><small>${p.price} ₽</small></div>
+                            <div class="actions">
+                                <button class="edit-btn" onclick="editItem(${p.id}, \`${p.name}\`, ${p.price}, '${p.art}', '${p.category_id}', '${p.img}', \`${p.description || ''}\`)">✎</button>
+                                <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
+                            </div>
+                        </div>`;
+                    });
+                }
+            });
+            list.innerHTML = html || "Товаров нет";
+        } catch (e) {
+            list.innerHTML = "Ошибка: сервер не отвечает";
         }
+    }
 
         function editItem(id, name, price, art, cat, img, desc) {
             document.getElementById('p-id').value = id;
