@@ -13,8 +13,8 @@
         .tab-content { display: none; }
         .tab-content.active { display: block; }
         input, select, textarea { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; font-family: inherit; }
-        textarea { height: 80px; resize: vertical; }
         button.main-btn { width: 100%; background: #28a745; color: white; border: none; padding: 14px; border-radius: 8px; font-weight: bold; cursor: pointer; }
+        button:disabled { opacity: 0.5; cursor: not-allowed; }
         .category-header { background: #e9ecef; padding: 8px 12px; border-radius: 6px; font-weight: bold; margin: 15px 0 10px 0; font-size: 14px; color: #495057; }
         .item-row { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #eee; }
         .item-row img { width: 45px; height: 45px; border-radius: 6px; object-fit: cover; }
@@ -22,9 +22,6 @@
         .del-btn { background: #ff4d4d; color: white; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
         .edit-btn { background: #ffc107; border: none; padding: 8px; border-radius: 6px; cursor: pointer; }
         .order-card { padding: 15px; border: 1px solid #eee; border-radius: 8px; margin-bottom: 12px; background: #fff; position: relative; }
-        .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .status-select { padding: 6px; border-radius: 6px; font-weight: bold; width: auto; margin: 0; font-size: 13px; }
-        .order-del-btn { position: absolute; bottom: 15px; right: 15px; background: #ff4d4d; color: white; border: none; padding: 5px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -52,8 +49,8 @@
             </select>
             <textarea id="p-desc" placeholder="Описание товара"></textarea>
             <input type="file" id="p-file" accept="image/*">
-            <button class="main-btn" id="save-btn">Сохранить</button>
-            <button id="cancel-btn" style="display:none; width:100%; margin-top:10px; background:none; border:none; color:#007bff; cursor: pointer;">Отмена</button>
+            <button class="main-btn" id="save-btn" onclick="saveProduct()">Сохранить</button>
+            <button id="cancel-btn" onclick="resetForm()" style="display:none; width:100%; margin-top:10px; background:none; border:none; color:#007bff; cursor: pointer;">Отмена</button>
         </div>
         <div class="box">
             <div id="products-list"></div>
@@ -90,34 +87,53 @@
         }
 
         async function saveProduct() {
+            const btn = document.getElementById('save-btn');
             const fileInput = document.getElementById('p-file');
             const pId = document.getElementById('p-id').value;
+            
+            btn.disabled = true;
+            btn.innerText = "Загрузка...";
+
             let imgPath = currentImg;
 
-            if (fileInput.files[0]) {
-                const formData = new FormData();
-                formData.append('file', fileInput.files[0]);
-                const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { method: 'POST', headers: h, body: formData });
-                const uploadData = await uploadRes.json();
-                imgPath = uploadData.img_path;
+            try {
+                if (fileInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('file', fileInput.files[0]);
+                    const uploadRes = await fetch(`${API_BASE}/api/admin/upload`, { method: 'POST', headers: h, body: formData });
+                    const uploadData = await uploadRes.json();
+                    imgPath = uploadData.img_path;
+                }
+
+                const data = {
+                    id: pId ? parseInt(pId) : null,
+                    name: document.getElementById('p-name').value,
+                    price: parseFloat(document.getElementById('p-price').value),
+                    art: document.getElementById('p-art').value,
+                    category: document.getElementById('p-cat').value,
+                    description: document.getElementById('p-desc').value,
+                    img: imgPath
+                };
+
+                const url = pId ? `${API_BASE}/api/admin/edit_product` : `${API_BASE}/api/admin/add_product`;
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: { ...h, "Content-Type": "application/json" },
+                    body: JSON.stringify(data)
+                });
+
+                if (res.ok) {
+                    resetForm();
+                    await loadProducts();
+                } else {
+                    alert("Ошибка при сохранении");
+                }
+            } catch (e) {
+                alert("Ошибка соединения");
+            } finally {
+                btn.disabled = false;
+                btn.innerText = "Сохранить";
             }
-
-            const data = {
-                id: pId || null,
-                name: document.getElementById('p-name').value,
-                price: document.getElementById('p-price').value,
-                art: document.getElementById('p-art').value,
-                category: document.getElementById('p-cat').value,
-                description: document.getElementById('p-desc').value,
-                img: imgPath
-            };
-
-            await fetch(pId ? `${API_BASE}/api/admin/edit_product` : `${API_BASE}/api/admin/add_product`, {
-                method: 'POST',
-                headers: { ...h, "Content-Type": "application/json" },
-                body: JSON.stringify(data)
-            });
-            resetForm(); loadProducts();
         }
 
         async function loadProducts() {
@@ -132,10 +148,10 @@
                     html += `<div class="category-header">${cat.name}</div>`;
                     html += catItems.map(p => `
                         <div class="item-row">
-                            <img src="${p.img}" onerror="this.src='/img/no-photo.jpg'">
+                            <img src="${p.img.startsWith('http') ? p.img : API_BASE + '/' + p.img}" onerror="this.src='/img/no-photo.jpg'">
                             <div style="flex:1"><b>${p.name}</b><br><small>${p.price}₽ | Арт: ${p.art}</small></div>
                             <div class="actions">
-                                <button class="edit-btn" onclick="editItem(${p.id},'${p.name.replace(/'/g, "\\'")}',${p.price},'${p.art}','${p.category_id}','${p.img}','${(p.description || '').replace(/'/g, "\\'")}')">✎</button>
+                                <button class="edit-btn" onclick="editItem(${p.id}, \`${p.name.replace(/`/g, '')}\`, ${p.price}, '${p.art}', '${p.category_id}', '${p.img}', \`${(p.description || '').replace(/`/g, '')}\`)">✎</button>
                                 <button class="del-btn" onclick="deleteItem(${p.id})">✕</button>
                             </div>
                         </div>
@@ -175,23 +191,21 @@
             const list = document.getElementById('orders-list');
             const res = await fetch(`${API_BASE}/api/admin/orders`, { headers: h });
             const data = await res.json();
-            list.innerHTML = data.map(o => {
-                const isCancelled = o.status === 'cancel';
-                return `
-                <div class="order-card" style="${isCancelled ? 'background:#fceaea' : ''}">
+            list.innerHTML = data.map(o => `
+                <div class="order-card" style="${o.status === 'cancel' ? 'background:#fceaea' : ''}">
                     <div class="order-header">
                         <b>Заказ #${o.id}</b>
-                        <select class="status-select" onchange="updateStatus(${o.id}, this.value)" ${isCancelled ? 'disabled' : ''}>
+                        <select onchange="updateStatus(${o.id}, this.value)">
                             <option value="new" ${o.status==='new'?'selected':''}>Новый</option>
                             <option value="done" ${o.status==='done'?'selected':''}>Выполнен</option>
                             <option value="cancel" ${o.status==='cancel'?'selected':''}>Отменен</option>
                         </select>
                     </div>
-                    <div style="font-size:14px">Сумма: <b>${o.total_price} ₽</b></div>
-                    <small style="display:block; white-space:pre-wrap; margin-top:5px; color:#555;">${o.details}</small>
-                    <button class="order-del-btn" onclick="deleteOrder(${o.id})">Удалить</button>
+                    <div>Сумма: ${o.total_price} ₽</div>
+                    <small style="display:block; white-space:pre-wrap;">${o.details}</small>
+                    <button class="del-btn" style="margin-top:10px" onclick="deleteOrder(${o.id})">Удалить заказ</button>
                 </div>
-            `}).join('');
+            `).join('');
         }
 
         async function updateStatus(id, status) {
@@ -203,11 +217,9 @@
             loadOrders();
         }
 
-        async function deleteItem(id) { if(confirm("Удалить товар?")) { await fetch(`${API_BASE}/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
+        async function deleteItem(id) { if(confirm("Удалить?")) { await fetch(`${API_BASE}/api/admin/product/${id}`, {method:'DELETE', headers:h}); loadProducts(); } }
         async function deleteOrder(id) { if(confirm("Удалить заказ?")) { await fetch(`${API_BASE}/api/admin/order/${id}`, {method:'DELETE', headers:h}); loadOrders(); } }
 
-        document.getElementById('save-btn').onclick = saveProduct;
-        document.getElementById('cancel-btn').onclick = resetForm;
         loadProducts();
     </script>
 </body>
