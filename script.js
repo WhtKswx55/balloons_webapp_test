@@ -24,8 +24,7 @@ async function loadProducts() {
         const response = await fetch(`${API_URL}?v=${Date.now()}`, {
             method: 'GET',
             headers: {
-                'ngrok-skip-browser-warning': 'true',
-                'Accept': 'application/json'
+                'ngrok-skip-browser-warning': '69420',
             }
         });
 
@@ -39,7 +38,8 @@ async function loadProducts() {
         initCategories();
     } catch (e) {
         console.error("Ошибка fetch:", e);
-        tg.showAlert("Ошибка загрузки: " + e.message);
+        tg.showAlert("Ошибка: " + e.message);
+        initCategories();
     }
 }
 
@@ -189,5 +189,3 @@ async function submitOrder() {
 
 // Запускаем только когда HTML полностью готов
 document.addEventListener('DOMContentLoaded', loadProducts);
-
-
